@@ -1,0 +1,478 @@
+---
+title: "project 1"
+author: "Xidan Kou"
+date: "2/1/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(readr)
+ppl <- read_csv("202201 Data Capstone SP2022 - Constituent Table Abbreviated.csv")
+
+donor <- read_csv("202201 Data Capstone SP2022 - Donor Giving Aggregate - as of today.csv")
+
+d3k99k <- read_csv("SP2022 Capstone - 202201 - DonorGivingAggregate_RelativeDate_3K99K.csv")
+
+
+```
+
+
+## EDA
+### Direction: People donate through which methods? Where 3k-99k people are likely to donate? People who donate for certain events / through certain ways are tends to donate more / to be the 3k - 99k? 
+### Do this by building bar graphs for different methods, how many jumped / not jumped people made donation through certain methods? Building predictive model to prove the guess / hypothesis
+```{r}
+table(d3k99k$param_ID_DATECOMPARETYPE)
+# table(d3k99k$param_ID_DATEDIMID)
+table(d3k99k$IS_DONOR)
+
+table(d3k99k$IS_DONOR_GIFT_3K)
+table(d3k99k$param_ID_DATECOMPARETYPE, d3k99k$IS_DONOR_GIFT_3K)
+# why people in 3k-99k never made 3k+ gift
+
+table(d3k99k$IS_DONOR_GIFT_3K100K)
+# How would they call them transit if they never made gift above 3K
+# So the largest gift is 3K ? 
+
+table(d3k99k$IS_DONOR_GIFT_100K)
+
+table(d3k99k$IS_DONOR_GIFT_1M)
+
+table(d3k99k$IS_DONOR_GIFT_5M)
+
+table(d3k99k$IS_DONOR_APPEAL_AG_ONLY)
+```
+
+```{r}
+table(d3k99k$param_ID_DATECOMPARETYPE)
+table(d3k99k$IS_DONOR_APPEAL_DM)
+counts = table(d3k99k$param_ID_DATECOMPARETYPE, d3k99k$IS_DONOR_APPEAL_DM)
+
+# Making subset of people who made the jump and who did not made the jump
+d3k99k_no_jump = d3k99k[d3k99k$param_ID_DATECOMPARETYPE %in% c("1"),]
+d3k99k_jumped = d3k99k[d3k99k$param_ID_DATECOMPARETYPE %in% c("2"),]
+
+```
+
+### For the first few graphs, it is kinds of hard to tell the trend, because people who made the jump may used to be the person under 3k, they might also have made small gifts before. 
+### Problem: data might be overlaped
+
+```{r}
+# Making all the plot together
+par(mfrow = c(4,2))
+
+barplot(table(d3k99k_jumped$IS_DONOR_TO_WOSU_EVER), main = "People who has made the jump", sub = "1 = Made Gift to WOSU")
+barplot(table(d3k99k_no_jump$IS_DONOR_TO_WOSU_EVER), main = "People who has not made the jump", sub = "0 = Never made Gift to WOSU")
+barplot(table(d3k99k_jumped$IS_DONOR_TO_LICPLATE_EVER), main = "People who has made the jump", sub = "1 = Made Gift to license plate fund")
+barplot(table(d3k99k_no_jump$IS_DONOR_TO_LICPLATE_EVER), main = "People who has not made the jump", sub = "0 = Never made Gift to license plate fund")
+barplot(table(d3k99k_jumped$IS_DONOR_TO_WCA_EVER), main = "People who has made the jump", sub = "1 = Made Wexner Arts Museum Donor")
+barplot(table(d3k99k_no_jump$IS_DONOR_TO_WCA_EVER), main = "People who has not made the jump", sub = "0 = Never made Wexner Arts Museum Donor")
+barplot(table(d3k99k_jumped$IS_DONOR_TO_PEL_EVER), main = "People who has made the jump", sub = "1 = Has Given to Pelotonia")
+barplot(table(d3k99k_no_jump$IS_DONOR_TO_PEL_EVER), main = "People who has not made the jump", sub = "0 = Has never Given to Pelotonia")
+```
+```{r}
+# Making all the plot together
+# More People under 3k made gift through the following methods
+
+par(mfrow = c(3,2))
+barplot(table(d3k99k_jumped$IS_DONOR_APPEAL_DM), main = "People who has made the jump", sub = "1 = Made Gift through Direct Mail")
+barplot(table(d3k99k_no_jump$IS_DONOR_APPEAL_DM), main = "People who has not made the jump", sub = "0 = Never Made Gift through Direct Mail")
+
+barplot(table(d3k99k_jumped$IS_DONOR_APPEAL_ONLINE), main = "People who has made the jump", sub = "1 = Made Gift Online")
+barplot(table(d3k99k_no_jump$IS_DONOR_APPEAL_ONLINE), main = "People who has not made the jump", sub = "0 = Never Made Gift Online")
+
+barplot(table(d3k99k_jumped$IS_DONOR_APPEAL_PHONE), main = "People who has made the jump", sub = "1 = Made Gift through Phone Call")
+barplot(table(d3k99k_no_jump$IS_DONOR_APPEAL_PHONE), main = "People who has not made the jump", sub = "0 = Never Made Gift through Phone Call")
+
+par(mfrow = c(3,2))
+
+barplot(table(d3k99k_jumped$IS_DONOR_APPEAL_BIG6), main = "People who has made the jump", sub = "1 = Made Gift through Big 6")
+barplot(table(d3k99k_no_jump$IS_DONOR_APPEAL_BIG6), main = "People who has not made the jump", sub = "0 = Never made Gift through Big 6")
+
+barplot(table(d3k99k_jumped$IS_DONOR_TRIBUTE_EVER), main = "People who has made the jump", sub = "1 = Made Tribute or Momerial Gift")
+barplot(table(d3k99k_no_jump$IS_DONOR_TRIBUTE_EVER), main = "People who has not made the jump", sub = "0 = Never made Tribute or Momerial Gift")
+
+barplot(table(d3k99k_jumped$IS_DONOR_APPEAL_AG), main = "People who has made the jump", sub = "1 = Made Gift through Annual Giving's appeal codes")
+barplot(table(d3k99k_no_jump$IS_DONOR_APPEAL_AG), main = "People who has not made the jump", sub = "0 = Never made Gift through Annual Giving's appeal codes")
+
+par(mfrow = c(3,2))
+
+barplot(table(d3k99k_jumped$IS_DONOR_TO_WOSU_EVER), main = "People who has made the jump", sub = "1 = Made Gift to WOSU")
+barplot(table(d3k99k_no_jump$IS_DONOR_TO_WOSU_EVER), main = "People who has not made the jump", sub = "0 = Never made Gift to WOSU")
+
+barplot(table(d3k99k_jumped$IS_DONOR_TO_LICPLATE_EVER), main = "People who has made the jump", sub = "1 = Made Gift to license plate fund")
+barplot(table(d3k99k_no_jump$IS_DONOR_TO_LICPLATE_EVER), main = "People who has not made the jump", sub = "0 = Never made Gift to license plate fund")
+
+barplot(table(d3k99k_jumped$IS_DONOR_APPEAL_OSUEMPLCMPN), main = "People who has made the jump", sub = "1 = Made Gift through employee campaign")
+barplot(table(d3k99k_no_jump$IS_DONOR_APPEAL_OSUEMPLCMPN), main = "People who has not made the jump", sub = "0 = Never made Gift through employee campaign")
+```
+
+### Variables are Direct Mail, Gift Online , Phone Call, Big 6, employee campaign,Annual Giving's appeal codes,  Momerial Gift, gift to WOSU, Gift to license plate fund
+
+```{r}
+# Making all the plot together
+# No difference for people under 3k and 3k-99k
+
+par(mfrow = c(4,2))
+barplot(table(d3k99k_jumped$IS_DONOR_APPEAL_EMAIL), main = "People who has made the jump", sub = "1 = Made Gift through Email")
+barplot(table(d3k99k_no_jump$IS_DONOR_APPEAL_EMAIL), main = "People who has not made the jump", sub = "0 = Never Made Gift through Email")
+
+barplot(table(d3k99k_jumped$IS_DONOR_APPEAL_GIVINGDAY), main = "People who has made the jump", sub = "1 = Made Gift as part of an online Giving Day solicitation")
+barplot(table(d3k99k_no_jump$IS_DONOR_APPEAL_GIVINGDAY), main = "People who has not made the jump", sub = "0 = as part of an online Giving Day solicitation")
+
+barplot(table(d3k99k_jumped$IS_DONOR_PAY_THRU_PRACTICECREDIT), main = "People who has made the jump", sub = "1 = Made Gift through Practice Credit")
+barplot(table(d3k99k_no_jump$IS_DONOR_PAY_THRU_PRACTICECREDIT), main = "People who has not made the jump", sub = "0 = Never made Gift through Annual Giving's appeal codes")
+
+barplot(table(d3k99k_jumped$IS_DONOR_TO_WCA_EVER), main = "People who has made the jump", sub = "1 = Made Wexner Arts Museum Donor")
+barplot(table(d3k99k_no_jump$IS_DONOR_TO_WCA_EVER), main = "People who has not made the jump", sub = "0 = Never made Wexner Arts Museum Donor")
+
+# Variables considering to delete: Gift through Email, Gift through Giving day, Gift through practice credit, Gift for Wexner Arts Museum 
+```
+
+
+```{r}
+# Making all the plot together
+# More People at 3k-99k made gift through the following methods
+
+par(mfrow = c(3,2))
+barplot(table(d3k99k_jumped$IS_DONOR_APPEAL_NEWDIGITAL), main = "People who has made the jump", sub = "1 = Made Gift through a newer digital channel")
+barplot(table(d3k99k_no_jump$IS_DONOR_APPEAL_NEWDIGITAL), main = "People who has not made the jump", sub = "0 = Never made gift through a newer digital channel")
+
+barplot(table(d3k99k_jumped$IS_DONOR_APPEAL_EVENT), main = "People who has made the jump", sub = "1 = Made an Event Gift")
+barplot(table(d3k99k_no_jump$IS_DONOR_APPEAL_EVENT), main = "People who has not made the jump", sub = "0 = Never made an Event Gift")
+
+barplot(table(d3k99k_jumped$IS_DONOR_TO_PEL_EVER), main = "People who has made the jump", sub = "1 = Has Given to Pelotonia")
+barplot(table(d3k99k_no_jump$IS_DONOR_TO_PEL_EVER), main = "People who has not made the jump", sub = "0 = Has never Given to Pelotonia")
+
+# Gift through a newer digital channel, Event Gift, Gift to pelotonia
+```
+
+```{r}
+# People making first gift through this method
+# Making all the plot together
+# No difference for people under 3k and 3k-99k
+
+par(mfrow = c(4,2))
+barplot(table(d3k99k_jumped$IS_DONOR_APPEAL_EMAIL_FIRST), main = "People who has made the jump", sub = "1 = Made Gift through Email")
+barplot(table(d3k99k_no_jump$IS_DONOR_APPEAL_EMAIL_FIRST), main = "People who has not made the jump", sub = "0 = Never Made Gift through Email")
+
+barplot(table(d3k99k_jumped$IS_DONOR_APPEAL_GIVINGDAY_FIRST), main = "People who has made the jump", sub = "1 = Made Gift as part of an online Giving Day solicitation")
+barplot(table(d3k99k_no_jump$IS_DONOR_APPEAL_GIVINGDAY_FIRST), main = "People who has not made the jump", sub = "0 = as part of an online Giving Day solicitation")
+
+barplot(table(d3k99k_jumped$IS_DONOR_PAY_THRU_PRACTICECREDIT_FIRST), main = "People who has made the jump", sub = "1 = Made Gift through Practice Credit")
+barplot(table(d3k99k_no_jump$IS_DONOR_PAY_THRU_PRACTICECREDIT_FIRST), main = "People who has not made the jump", sub = "0 = Never made Gift through Annual Giving's appeal codes")
+
+barplot(table(d3k99k_jumped$IS_DONOR_TO_WCA_FIRST), main = "People who has made the jump", sub = "1 = Made Wexner Arts Museum Donor")
+barplot(table(d3k99k_no_jump$IS_DONOR_TO_WCA_FIRST), main = "People who has not made the jump", sub = "0 = Never made Wexner Arts Museum Donor")
+
+# Variables considering to delete: Gift through Email, Gift through Giving day, Gift through practice credit, Gift for Wexner Arts Museum 
+```
+```{r}
+# People making first gift through this method
+# Making all the plot together
+# More People at 3k-99k made gift through the following methods
+
+table(d3k99k_jumped$IS_DONOR_APPEAL_NEWDIGITAL_FIRST)
+table(d3k99k_jumped$IS_DONOR_APPEAL_NEWDIGITAL)
+
+par(mfrow = c(3,2))
+barplot(table(d3k99k_jumped$IS_DONOR_APPEAL_NEWDIGITAL_FIRST), main = "People who has made the jump", sub = "1 = Made Gift through a newer digital channel")
+barplot(table(d3k99k_no_jump$IS_DONOR_APPEAL_NEWDIGITAL_FIRST), main = "People who has not made the jump", sub = "0 = Never made gift through a newer digital channel")
+
+barplot(table(d3k99k_jumped$IS_DONOR_APPEAL_EVENT_FIRST), main = "People who has made the jump", sub = "1 = Made an Event Gift")
+barplot(table(d3k99k_no_jump$IS_DONOR_APPEAL_EVENT_FIRST), main = "People who has not made the jump", sub = "0 = Never made an Event Gift")
+
+barplot(table(d3k99k_jumped$IS_DONOR_TO_PEL_FIRST), main = "People who has made the jump", sub = "1 = Has Given to Pelotonia")
+barplot(table(d3k99k_no_jump$IS_DONOR_TO_PEL_FIRST), main = "People who has not made the jump", sub = "0 = Has never Given to Pelotonia")
+
+# Gift through a newer digital channel, Event Gift, Gift to pelotonia
+```
+
+```{r}
+# People making first gift through this method
+# Making all the plot together
+# More People under 3k made gift through the following methods
+
+par(mfrow = c(3,2))
+barplot(table(d3k99k_jumped$IS_DONOR_APPEAL_DM_FIRST), main = "People who has made the jump", sub = "1 = Made Gift through Direct Mail")
+barplot(table(d3k99k_no_jump$IS_DONOR_APPEAL_DM_FIRST), main = "People who has not made the jump", sub = "0 = Never Made Gift through Direct Mail")
+
+barplot(table(d3k99k_jumped$IS_DONOR_APPEAL_ONLINE_FIRST), main = "People who has made the jump", sub = "1 = Made Gift Online")
+barplot(table(d3k99k_no_jump$IS_DONOR_APPEAL_ONLINE_FIRST), main = "People who has not made the jump", sub = "0 = Never Made Gift Online")
+
+barplot(table(d3k99k_jumped$IS_DONOR_APPEAL_PHONE_FIRST), main = "People who has made the jump", sub = "1 = Made Gift through Phone Call")
+barplot(table(d3k99k_no_jump$IS_DONOR_APPEAL_PHONE_FIRST), main = "People who has not made the jump", sub = "0 = Never Made Gift through Phone Call")
+
+par(mfrow = c(3,2))
+
+barplot(table(d3k99k_jumped$IS_DONOR_APPEAL_BIG6), main = "People who has made the jump", sub = "1 = Made Gift through Big 6")
+barplot(table(d3k99k_no_jump$IS_DONOR_APPEAL_BIG6), main = "People who has not made the jump", sub = "0 = Never made Gift through Big 6")
+
+barplot(table(d3k99k_jumped$IS_DONOR_TRIBUTE_EVER), main = "People who has made the jump", sub = "1 = Made Tribute or Momerial Gift")
+barplot(table(d3k99k_no_jump$IS_DONOR_TRIBUTE_EVER), main = "People who has not made the jump", sub = "0 = Never made Tribute or Momerial Gift")
+
+barplot(table(d3k99k_jumped$IS_DONOR_APPEAL_AG), main = "People who has made the jump", sub = "1 = Made Gift through Annual Giving's appeal codes")
+barplot(table(d3k99k_no_jump$IS_DONOR_APPEAL_AG), main = "People who has not made the jump", sub = "0 = Never made Gift through Annual Giving's appeal codes")
+
+par(mfrow = c(3,2))
+
+barplot(table(d3k99k_jumped$IS_DONOR_TO_WOSU_EVER), main = "People who has made the jump", sub = "1 = Made Gift to WOSU")
+barplot(table(d3k99k_no_jump$IS_DONOR_TO_WOSU_EVER), main = "People who has not made the jump", sub = "0 = Never made Gift to WOSU")
+
+barplot(table(d3k99k_jumped$IS_DONOR_TO_LICPLATE_EVER), main = "People who has made the jump", sub = "1 = Made Gift to license plate fund")
+barplot(table(d3k99k_no_jump$IS_DONOR_TO_LICPLATE_EVER), main = "People who has not made the jump", sub = "0 = Never made Gift to license plate fund")
+
+barplot(table(d3k99k_jumped$IS_DONOR_APPEAL_OSUEMPLCMPN), main = "People who has made the jump", sub = "1 = Made Gift through employee campaign")
+barplot(table(d3k99k_no_jump$IS_DONOR_APPEAL_OSUEMPLCMPN), main = "People who has not made the jump", sub = "0 = Never made Gift through employee campaign")
+```
+
+
+```{r}
+# People making first gift ONLY through this method
+# Making all the plot together
+# More People under 3k made gift through the following methods
+
+par(mfrow = c(3,2))
+barplot(table(d3k99k_jumped$IS_DONOR_APPEAL_DM_FIRST), main = "People who has made the jump", sub = "1 = Made Gift through Direct Mail")
+barplot(table(d3k99k_no_jump$IS_DONOR_APPEAL_DM_FIRST), main = "People who has not made the jump", sub = "0 = Never Made Gift through Direct Mail")
+
+barplot(table(d3k99k_jumped$IS_DONOR_APPEAL_ONLINE_FIRST), main = "People who has made the jump", sub = "1 = Made Gift Online")
+barplot(table(d3k99k_no_jump$IS_DONOR_APPEAL_ONLINE_FIRST), main = "People who has not made the jump", sub = "0 = Never Made Gift Online")
+
+barplot(table(d3k99k_jumped$IS_DONOR_APPEAL_PHONE_FIRST), main = "People who has made the jump", sub = "1 = Made Gift through Phone Call")
+barplot(table(d3k99k_no_jump$IS_DONOR_APPEAL_PHONE_FIRST), main = "People who has not made the jump", sub = "0 = Never Made Gift through Phone Call")
+
+par(mfrow = c(3,2))
+
+barplot(table(d3k99k_jumped$IS_DONOR_APPEAL_BIG6_FIRST), main = "People who has made the jump", sub = "1 = Made Gift through Big 6")
+barplot(table(d3k99k_no_jump$IS_DONOR_APPEAL_BIG6_FIRST), main = "People who has not made the jump", sub = "0 = Never made Gift through Big 6")
+
+barplot(table(d3k99k_jumped$IS_DONOR_TRIBUTE_FIRST), main = "People who has made the jump", sub = "1 = Made Tribute or Momerial Gift")
+barplot(table(d3k99k_no_jump$IS_DONOR_TRIBUTE_FIRST), main = "People who has not made the jump", sub = "0 = Never made Tribute or Momerial Gift")
+
+barplot(table(d3k99k_jumped$IS_DONOR_APPEAL_AG_FIRST), main = "People who has made the jump", sub = "1 = Made Gift through Annual Giving's appeal codes")
+barplot(table(d3k99k_no_jump$IS_DONOR_APPEAL_AG_FIRST), main = "People who has not made the jump", sub = "0 = Never made Gift through Annual Giving's appeal codes")
+
+par(mfrow = c(3,2))
+
+barplot(table(d3k99k_jumped$IS_DONOR_TO_WOSU_FIRST), main = "People who has made the jump", sub = "1 = Made Gift to WOSU")
+barplot(table(d3k99k_no_jump$IS_DONOR_TO_WOSU_FIRST), main = "People who has not made the jump", sub = "0 = Never made Gift to WOSU")
+
+barplot(table(d3k99k_jumped$IS_DONOR_TO_LICPLATE_FIRST), main = "People who has made the jump", sub = "1 = Made Gift to license plate fund")
+barplot(table(d3k99k_no_jump$IS_DONOR_TO_LICPLATE_FIRST), main = "People who has not made the jump", sub = "0 = Never made Gift to license plate fund")
+
+barplot(table(d3k99k_jumped$IS_DONOR_APPEAL_OSUEMPLCMPN_FIRST), main = "People who has made the jump", sub = "1 = Made Gift through employee campaign")
+barplot(table(d3k99k_no_jump$IS_DONOR_APPEAL_OSUEMPLCMPN_FIRST), main = "People who has not made the jump", sub = "0 = Never made Gift through employee campaign")
+```
+
+### To plot bernoulli, convert DateComapre typ first
+```{r}
+d3k99k["param_ID_DATECOMPARETYPE"][d3k99k["param_ID_DATECOMPARETYPE"] == 1] <- 0
+d3k99k["param_ID_DATECOMPARETYPE"][d3k99k["param_ID_DATECOMPARETYPE"] == 2] <- 1
+```
+
+```{r}
+set.seed(314159)
+d3k99k$IS_DONOR_APPEAL_DM_FIRST = as.factor(d3k99k$IS_DONOR_APPEAL_DM_FIRST)
+d3k99k$IS_DONOR_APPEAL_ONLINE_FIRST = as.factor(d3k99k$IS_DONOR_APPEAL_ONLINE_FIRST)
+
+d3k99k$IS_DONOR_APPEAL_EMAIL_FIRST = as.factor(d3k99k$IS_DONOR_APPEAL_EMAIL_FIRST)
+d3k99k$IS_DONOR_APPEAL_PHONE_FIRST = as.factor(d3k99k$IS_DONOR_APPEAL_PHONE_FIRST)
+
+d3k99k$IS_DONOR_APPEAL_GIVINGDAY_FIRST = as.factor(d3k99k$IS_DONOR_APPEAL_GIVINGDAY_FIRST)
+d3k99k$IS_DONOR_APPEAL_NEWDIGITAL_FIRST = as.factor(d3k99k$IS_DONOR_APPEAL_NEWDIGITAL_FIRST)
+
+d3k99k$IS_DONOR_APPEAL_EVENT_FIRST = as.factor(d3k99k$IS_DONOR_APPEAL_EVENT_FIRST)
+d3k99k$IS_DONOR_APPEAL_OSUEMPLCMPN_FIRST = as.factor(d3k99k$IS_DONOR_APPEAL_OSUEMPLCMPN_FIRST)
+
+d3k99k$IS_DONOR_APPEAL_BIG6_FIRST = as.factor(d3k99k$IS_DONOR_APPEAL_BIG6_FIRST)
+d3k99k$IS_DONOR_APPEAL_AG_FIRST = as.factor(d3k99k$IS_DONOR_APPEAL_AG_FIRST)
+
+d3k99k$IS_DONOR_TRIBUTE_FIRST = as.factor(d3k99k$IS_DONOR_TRIBUTE_FIRST)
+d3k99k$IS_DONOR_PAY_THRU_PRACTICECREDIT_FIRST = as.factor(d3k99k$IS_DONOR_PAY_THRU_PRACTICECREDIT_FIRST)
+
+d3k99k$IS_DONOR_TO_PEL_FIRST = as.factor(d3k99k$IS_DONOR_TO_PEL_FIRST)
+d3k99k$IS_DONOR_TO_WCA_FIRST = as.factor(d3k99k$IS_DONOR_TO_WCA_FIRST)
+
+d3k99k$IS_DONOR_TO_WOSU_FIRST = as.factor(d3k99k$IS_DONOR_TO_WOSU_FIRST)
+d3k99k$IS_DONOR_TO_LICPLATE_FIRST = as.factor(d3k99k$IS_DONOR_TO_LICPLATE_FIRST)
+
+d3k99k$param_ID_DATECOMPARETYPE = as.factor(d3k99k$param_ID_DATECOMPARETYPE)
+```
+
+```{r}
+# Creating subset
+# install.packages("caret")
+library(caret)
+set.seed(111)
+install.packages("themis")
+trainup = upSample(x = d3k99k[,-ncol(d3k99k)], y = d3k99k$param_ID_DATECOMPARETYPE)
+# table(trainup$param_ID_DATECOMPARETYPE)
+#library()
+# barplot(table(sample(1:nrow(d3k99k), size=1000, replace=TRUE, prob=0.5)))
+rows_to_keep <- sample(1:nrow(trainup), size=10000, replace=FALSE)
+d3k99k_subset <- trainup[rows_to_keep,]
+
+d3k99k_no_jump = d3k99k_subset[d3k99k_subset$param_ID_DATECOMPARETYPE %in% c("1"),]
+d3k99k_jumped = d3k99k_subset[d3k99k_subset$param_ID_DATECOMPARETYPE %in% c("2"),]
+```
+
+```{r}
+# People making first gift through this method
+# Making all the plot together
+# More People under 3k made gift through the following methods
+
+par(mfrow = c(3,2))
+barplot(table(d3k99k_jumped$IS_DONOR_APPEAL_DM_FIRST), main = "People who has made the jump", sub = "1 = Made Gift through Direct Mail")
+barplot(table(d3k99k_no_jump$IS_DONOR_APPEAL_DM_FIRST), main = "People who has not made the jump", sub = "0 = Never Made Gift through Direct Mail")
+
+barplot(table(d3k99k_jumped$IS_DONOR_APPEAL_ONLINE_FIRST), main = "People who has made the jump", sub = "1 = Made Gift Online")
+barplot(table(d3k99k_no_jump$IS_DONOR_APPEAL_ONLINE_FIRST), main = "People who has not made the jump", sub = "0 = Never Made Gift Online")
+
+barplot(table(d3k99k_jumped$IS_DONOR_APPEAL_PHONE_FIRST), main = "People who has made the jump", sub = "1 = Made Gift through Phone Call")
+barplot(table(d3k99k_no_jump$IS_DONOR_APPEAL_PHONE_FIRST), main = "People who has not made the jump", sub = "0 = Never Made Gift through Phone Call")
+
+par(mfrow = c(3,2))
+
+barplot(table(d3k99k_jumped$IS_DONOR_APPEAL_BIG6), main = "People who has made the jump", sub = "1 = Made Gift through Big 6")
+barplot(table(d3k99k_no_jump$IS_DONOR_APPEAL_BIG6), main = "People who has not made the jump", sub = "0 = Never made Gift through Big 6")
+
+barplot(table(d3k99k_jumped$IS_DONOR_TRIBUTE_EVER), main = "People who has made the jump", sub = "1 = Made Tribute or Momerial Gift")
+barplot(table(d3k99k_no_jump$IS_DONOR_TRIBUTE_EVER), main = "People who has not made the jump", sub = "0 = Never made Tribute or Momerial Gift")
+
+barplot(table(d3k99k_jumped$IS_DONOR_APPEAL_AG), main = "People who has made the jump", sub = "1 = Made Gift through Annual Giving's appeal codes")
+barplot(table(d3k99k_no_jump$IS_DONOR_APPEAL_AG), main = "People who has not made the jump", sub = "0 = Never made Gift through Annual Giving's appeal codes")
+
+par(mfrow = c(3,2))
+
+barplot(table(d3k99k_jumped$IS_DONOR_TO_WOSU_EVER), main = "People who has made the jump", sub = "1 = Made Gift to WOSU")
+barplot(table(d3k99k_no_jump$IS_DONOR_TO_WOSU_EVER), main = "People who has not made the jump", sub = "0 = Never made Gift to WOSU")
+
+barplot(table(d3k99k_jumped$IS_DONOR_TO_LICPLATE_EVER), main = "People who has made the jump", sub = "1 = Made Gift to license plate fund")
+barplot(table(d3k99k_no_jump$IS_DONOR_TO_LICPLATE_EVER), main = "People who has not made the jump", sub = "0 = Never made Gift to license plate fund")
+
+barplot(table(d3k99k_jumped$IS_DONOR_APPEAL_OSUEMPLCMPN), main = "People who has made the jump", sub = "1 = Made Gift through employee campaign")
+barplot(table(d3k99k_no_jump$IS_DONOR_APPEAL_OSUEMPLCMPN), main = "People who has not made the jump", sub = "0 = Never made Gift through employee campaign")
+```
+
+
+
+```{r}
+#install.packages("randomForest")
+library(randomForest)
+set.seed(1)
+# donation_ways = d3k99k[,c(2,91:100,107,110,113,121,124,127)]
+new_data = d3k99k_subset$FY_DONOR_GIFT_LAST > 2000
+donation_ways_subset = d3k99k_subset[new_data,c(2,91:100,107,110,113,121,124,127)]
+# Deleted insignificant variables / only few people ever made donation through this method
+donation_ways_subset = donation_ways_subset[,c(-4,-6,-13,-15)]
+table(donation_ways_subset$IS_DONOR_TO_WOSU_FIRST,donation_ways_subset$param_ID_DATECOMPARETYPE)
+rf.donation = randomForest(param_ID_DATECOMPARETYPE~. , data = donation_ways_subset, mtry = 4, importance = TRUE)
+rf.donation 
+importance(rf.donation)
+# Two measures of variable importance are reported. The former is based upon the mean decrease of accuracy in predictions on the out of bag samples when a given variable is excluded from the model. The latter is a measure of the total decrease in node impurity that results from splits over that variable, averaged over all trees
+varImpPlot(rf.donation,n.var = 5,cex = 0.5)
+# summary(rf.donation)
+# https://stats.stackexchange.com/questions/197827/how-to-interpret-mean-decrease-in-accuracy-and-mean-decrease-gini-in-random-fore
+```
+
+
+```{r}
+library(gbm)
+set.seed(1)
+boot.donate.all = gbm(param_ID_DATECOMPARETYPE==1~., data = donation_ways_subset, distribution = "bernoulli", n.trees = 50, interaction.depth = 3)
+summary.gbm(boot.donate.all)
+```
+
+
+```{r}
+# All varirables for logistic regression 
+glm.fit.whole = glm(param_ID_DATECOMPARETYPE == 1~ ., data = donation_ways_subset,family = "binomial")
+summary(glm.fit.whole)
+
+#glm.fit.whole = glm(param_ID_DATECOMPARETYPE~ IS_DONOR_APPEAL_EVENT_FIRST + IS_DONOR_APPEAL_DM_FIRST + IS_DONOR_APPEAL_AG_FIRST, data = donation_ways_subset,family = "binomial")
+#summary(glm.fit.whole)
+```
+
+How do you interpret log odds ratio?
+To conclude, the important thing to remember about the odds ratio is that an odds ratio greater than 1 is a positive association (i.e., higher number for the predictor means group 1 in the outcome), and an odds ratio less than 1 is negative association (i.e., higher number for the predictor means group 0 in the outcome ...
+
+Intercept: the log-odds of not jump for people who first donate through EVENT is 2.22590.
+
+For each of the other age groups, the coefficient tells us that the log-odds of jump for a given group(first donation method)is smaller than that of the reference group.
+
+Where p>0.5, the null hypothesis bk=0 cannot be rejected i.e. there is insufficient statistical evidence that the chance of survival is significantly smaller compared to the reference group.
+
+
+```{r}
+# Individual variables 
+# Giving through pelotonia
+glm.fit = glm(param_ID_DATECOMPARETYPE~ IS_DONOR_TO_PEL_FIRST, data = donation_ways_subset,family = "binomial")
+summary(glm.fit)
+# Giving through event
+glm.fit = glm(param_ID_DATECOMPARETYPE~ IS_DONOR_APPEAL_EVENT_FIRST, data = donation_ways_subset,family = "binomial")
+summary(glm.fit)
+# Giving through new digit
+glm.fit = glm(param_ID_DATECOMPARETYPE~ IS_DONOR_APPEAL_NEWDIGITAL_FIRST, data = donation_ways_subset,family = "binomial")
+summary(glm.fit)
+glm.fit = glm(param_ID_DATECOMPARETYPE~ IS_DONOR_APPEAL_OSUEMPLCMPN_FIRST, data = donation_ways_subset,family = "binomial")
+summary(glm.fit)
+
+# Giving through mail
+glm.fit = glm(param_ID_DATECOMPARETYPE~ IS_DONOR_APPEAL_DM_FIRST, data = donation_ways_subset,family = "binomial")
+summary(glm.fit)
+# Giving through online
+glm.fit = glm(param_ID_DATECOMPARETYPE~ IS_DONOR_APPEAL_ONLINE_FIRST, data = donation_ways_subset,family = "binomial")
+summary(glm.fit)
+# Giving through online
+glm.fit = glm(param_ID_DATECOMPARETYPE~ IS_DONOR_APPEAL_PHONE_FIRST, data = donation_ways_subset,family = "binomial")
+summary(glm.fit)
+# Giving through big 6
+glm.fit = glm(param_ID_DATECOMPARETYPE~ IS_DONOR_APPEAL_BIG6_FIRST, data = donation_ways_subset,family = "binomial")
+summary(glm.fit)
+# the p-value is still relatively large, and so there is no clear evidence of a real association between x and y.
+# Giving through big 6
+glm.fit = glm(param_ID_DATECOMPARETYPE~ IS_DONOR_APPEAL_AG_FIRST, data = donation_ways_subset,family = "binomial")
+summary(glm.fit)
+
+glm.fit = glm(param_ID_DATECOMPARETYPE~ IS_DONOR_TRIBUTE_FIRST, data = donation_ways_subset,family = "binomial")
+summary(glm.fit)
+
+glm.fit = glm(param_ID_DATECOMPARETYPE~ IS_DONOR_TO_WOSU_FIRST, data = donation_ways_subset,family = "binomial")
+summary(glm.fit)
+
+glm.fit = glm(param_ID_DATECOMPARETYPE~ IS_DONOR_TO_LICPLATE_FIRST, data = d3k99k,family = "binomial")
+summary(glm.fit)
+
+```
+
+
+
+```{r}
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
