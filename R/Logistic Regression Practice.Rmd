@@ -1,0 +1,102 @@
+---
+title: "XidanKou_HW2"
+author: "Xidan Kou"
+date: "2/2/2021"
+output: html_document
+---
+
+##Question 1
+
+a)
+```{r}
+hiroshima <- read.table("~/Desktop/Stat 3302/hiroshima.txt",header = TRUE)
+hiroshima$proportion = hiroshima$leukemia / (hiroshima$leukemia + hiroshima$other + hiroshima$total)
+
+plot(hiroshima$midpoint, jitter(hiroshima$proportion), ylab = "Proportion of total cancer deaths that are due to Leukemia", xlab = "Midpoint of radiation exposure")
+```
+
+The graph suggests that as the radiation received increases, the proportion of total cancer deaths that are due to Leukemia increases as well.
+
+b)
+```{r}
+
+VTM = function(vc,dm){
+  matrix(vc,ncol = length(vc),nrow = dm,byrow = TRUE)
+}
+
+data.death = data.frame()
+for(j in 1:nrow(hiroshima)){
+  
+new.line = c(hiroshima$midpoint[j],1)
+new.chunk = VTM(new.line,hiroshima$leukemia[j])
+data.death = rbind(data.death,new.chunk)
+
+new.0s = c(hiroshima$midpoint[j], 0)
+new.chunk = VTM(new.0s,(hiroshima$other[j]))
+data.death = rbind(data.death,new.chunk)
+
+}
+colnames(data.death) = c("radiation_midpoint", "leukemia_dead")
+head(data.death)
+
+model = glm(leukemia_dead ~ radiation_midpoint, data = data.death, family = "binomial" )
+summary(model)
+
+temp = summary(model)$coefficients
+beta.point.estimated = temp["radiation_midpoint","Estimate"]
+
+beta.ci = c(temp["radiation_midpoint","Estimate"]- 1.96*temp["radiation_midpoint","Std. Error"], temp["radiation_midpoint","Estimate"]+ 1.96*temp["radiation_midpoint","Std. Error"])
+
+
+OR.est = exp(beta.point.estimated)
+OR.est
+OR.ci = exp(beta.ci)
+OR.ci
+
+```
+
+For each one level increase in radiation, the odds of cancer deaths that are due to leukemia increase 1.012 times(95% Confidence Interval of odds of $\beta_1$ is (1.008749,10014644)).
+
+##Question 2
+ 
+a)
+
+$Y_i$(i = 1,...,n) are n independent Bern($P_i$) RVs. 
+
+$Y_i$ = 1 if the person experienced a sore throat
+      = 0 if the person does not experienced a sore throat
+   
+$x_i$ = duration of the surgery in minute 
+
+model : expit{$\beta_0$ + $\beta_ix_i$ }
+
+b)
+```{r}
+throat <- read.table("~/Desktop/Stat 3302/throat.txt",header = TRUE)
+model_throat = glm(throat ~ duration, data = throat, family = "binomial")
+summary(model_throat)
+
+temp = summary(model_throat)$coefficients
+beta.point.estimated = temp["duration","Estimate"]
+
+beta.ci = c(temp["duration","Estimate"]- 1.96*temp["duration","Std. Error"], temp["duration","Estimate"]+ 1.96*temp["duration","Std. Error"])
+
+
+OR.est = exp(beta.point.estimated)
+OR.est
+OR.ci = exp(beta.ci)
+OR.ci
+
+
+```
+
+For each one minute increase in duration of the surgery, the odds of experience a sore throat increase 1.075 times(95% Confidence Interval of odds of $\beta_1$ is (1.022394, 1.129644)).
+
+
+
+
+
+
+
+
+
