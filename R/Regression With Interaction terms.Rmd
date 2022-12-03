@@ -1,0 +1,103 @@
+---
+title: "Stat 3301: Homework 9"
+date: "Xidan Kou (kou.55)"
+author: "Due Thursday, November 19 by 11:59pm EST"
+output: html_document
+---
+
+Setup:
+```{r message=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(alr4)
+library(tidyverse)
+```
+
+#### Answer to Question 1
+
+(a) 
+```{r} 
+nhl <- read_csv("~/Desktop/Stat 3301/nhlfans.csv")
+summary( lm( log(tts) ~ log(estFans) * country, data=nhl ) )
+
+p = nhl %>% ggplot(aes(x =log(estFans) , y = log(tts)))  + geom_point(aes(color = country))+ geom_smooth(aes(color = country), method = "lm") 
+p + theme_bw(20) + xlab("log(estFans)") + ylab("log(tts)") + scale_color_hue("Country")
+```
+
+Regression equation for Interaction Model:
+$$
+  \log (tts)_i = \beta_0 +\beta_1 log(estFan)_i+ \beta_2 U_{\mathtt{USA}_i} + \beta_3 U_{\mathtt{USA}_i} log(estFan)_i+ e_i.
+$$
+
+Regression equation for terms in USA:
+$$
+  \log (tts)_i = \beta_0 +\beta_1 log(estFan)_i+ \beta_2 + \beta_3 log(estFan)_i+ e_i.
+$$
+
+Regression equation for terms in Canada:
+$$
+  \log (tts)_i = \beta_0 +\beta_1 log(estFan)_i+ e_i.
+$$
+
+(b) 
+```{r}
+summary( lm( log(tts) ~ log(estFans) + country, data=nhl ))
+
+modMain = lm( log(tts) ~ log(estFans) + country, data=nhl )
+library(broom)
+ggplot(augment(modMain),aes(x= log(nhl$estFans), y=log(nhl$tts), color=country)) + geom_jitter(height = 0.5,width = 0,alpha=0.5)+ geom_line(aes(y = .fitted, group = country), size = 1) + theme_bw(22) + xlab("log(estFans)") + ylab("log(tts)")
+
+```
+
+Regression equation for Main Effects Model:
+$$
+  \log (tts)_i = \beta_0 +\beta_1 log(estFan)_i+ \beta_2 U_{\mathtt{USA}_i} + e_i.
+$$
+
+Regression equation for terms in USA:
+$$
+  \log (tts)_i = \beta_0 +\beta_1 log(estFan)_i+ \beta_2 + e_i.
+$$
+
+Regression equation for terms in Canada:
+$$
+  \log (tts)_i = \beta_0 +\beta_1 log(estFan)_i+ e_i.
+$$
+
+(c) 
+The Model (`log(ttsm) ~ log(estFans)`) would be sufficient to describe the relationship between variables. The p value for interaction term in model (`log(ttsm) ~ country*log(estFans)`) is 0.1898, so we say the model without the interaction term would be sufficient to describe the relationship. The p value for variable country in model (`log(ttsm) ~ country + log(estFans)`) is 0.965, , so we say the model without the country variable would be sufficient to describe the relationship. Thus, The Model (`log(ttsm) ~ log(estFans)`) would be the best in this case and also sufficient.
+
+
+#### Answer to Question 2
+
+(a) 
+```{r}
+Rateprof %>% ggplot(aes(y = quality, x = gender, color = discipline)) + geom_boxplot()
+```
+
+(b) 
+$$
+  E(\mathtt{quality} | X) = \beta_0 +\beta_1 U_{\mathtt{male}_i} + \beta_2 U_{\mathtt{SocSci}_i} + \beta_3 U_{\mathtt{STEM}_i}
+    + \beta_4 U_{\mathtt{Pre-prof}_i} +  \beta_5 U_{\mathtt{SocSci}_i}U_{\mathtt{male}_i} + \beta_6 U_{\mathtt{STEM}_i} U_{\mathtt{male}_i} + \beta_7 U_{\mathtt{Pre-prf}_i} U_{\mathtt{male}_i} + e_i.
+$$
+
+```{r}
+summary(lm(quality ~ gender*discipline, data = Rateprof))
+```
+
+(c) 
+The intercept $\beta_0$ is the Sample average quality for female instructor and Humanities course.
+
+(d) 
+```{r}
+vcov(lm(quality ~ gender*discipline, data = Rateprof))
+se = sqrt(0.03617642 + 0.05646494 - (2*0.03617642))
+(-0.08316-0.01961) + c(-1,1)*qt(0.975,358)*se
+```
+
+\[
+  \hat{E}(quality \mid male, STEM) - \hat{E}(quality \mid male, Hum) =(\hat{\beta_0} +\hat{\beta_1}+\hat{\beta_3}+\hat{\beta_6})-(\hat{\beta_0} +\hat{\beta_1}) = \hat{\beta_3}+\hat{\beta_6} = -0.08316 -0.01961 = -0.10277.
+\]
+
+CI : \[
+  \hat{E}(quality \mid male, STEM) - \hat{E}(quality \mid male, Hum) \pm t(0.975,358)\hat{se}(\hat{\beta_3}+\hat{\beta_6}) = (-0.3828899,0.1773499).
+\]
