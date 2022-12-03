@@ -1,0 +1,115 @@
+---
+title: "Final"
+author: "Xidan Kou"
+date: "1/18/2022"
+output: html_document
+---
+
+
+```{r}
+library(nycflights13)
+flights = data.frame(flights)
+```
+
+
+```{r}
+# Using outside data
+weather = data.frame(weather)
+total = merge(flights,weather,by =c("time_hour", "origin"))
+
+# wind guest contains lots of NA's, So I deleted this columnbus
+total = total[,-29]
+total = na.omit(total)
+```
+
+
+```{r}
+total$delay = cut(total$dep_delay, breaks = c(-Inf, 15, Inf), labels = c("not delayed", "delayed"))
+total_sub = total[,c(-1:-7,-9:-17,-19,-21:-24)]
+total_sub_new = total_sub
+
+# recognized as delay when delay is greater than 15
+total_sub = subset(total_sub,dep_delay>=15)
+# flights$delayed = ifelse(flights$dep_delay >=15, "Delayed","Not Delayed" )
+
+summary(total_sub)
+```
+
+
+
+```{r}
+summary(total_sub)
+```
+
+
+```{r}
+# Creating new / converting variables
+total_sub$visib_class = cut(total_sub$visib, breaks = c(0,9,10), labels = c("low","high"))
+```
+
+
+```{r}
+
+total_sub$hour.x = as.factor(total_sub$hour.x)
+plot(total_sub$hour.x, xlab = "hourly time", ylab = "number of observation" , main = "Hourly Data Distribution ")
+total_sub$hour.x = as.numeric(total_sub$hour.x)
+
+```
+```{r}
+library(gbm)
+set.seed(4911)
+names(total_sub)
+boost.fit = gbm(dep_delay~ temp + dewp + humid + wind_dir + wind_speed + precip + pressure ,data=total_sub,distribution="gaussian",n.trees=500,interaction.depth=2)
+```
+
+```{r}
+summary(boost.fit,las=1)
+```
+
+```{r}
+# Creating new / converting variables
+total_sub$hour_class = cut(total_sub$hour.x, breaks = c(1,11,15,21,24), labels = c("morning","noon","afternoon","night"))
+```
+
+
+
+```{r}
+total_sub = na.omit(total_sub)
+ggplot(total_sub, aes(x = pressure, y = delayed )) + geom_boxplot(aes(color = hour_class)) + labs(x = "Sea level pressure in milibars", y = "Delayed flights" ,title = "Pressure of Delayed Flights by Time")+ guides(color = guide_legend("Time"))
+```
+
+
+```{r}
+
+ggplot(total_sub, aes(x = humid, y = delayed)) + geom_boxplot(aes(color = hour_class)) + labs(x = "Relative Himidity", y = "Delayed flights", title = "Humidity of Delayed Flights by Time")+ guides(color = guide_legend("Time"))
+```
+
+```{r}
+ggplot(total_sub, aes(x = wind_speed, y = delayed)) + geom_boxplot(aes(color = hour_class)) + labs(x = "wind speed", y = "Delayed flights" ,title = "Pressure of Delayed Flights by Time")+ guides(color = guide_legend("Time"))
+```
+
+```{r}
+ggplot(total_sub, aes(x = dewp, y = delayed)) + geom_boxplot(aes(color = hour_class)) + labs(x = "Dewpoint in F", y = "Delayed flights" ,title = "Dewpoint of Delayed Flights by Time")+ guides(color = guide_legend("Time"))
+```
+
+```{r}
+ggplot(total_sub, aes(x = temp, y = delayed)) + geom_boxplot(aes(color = hour_class)) + labs(x = "Temperature in F", y = "Delayed flights" ,title = "Temperature of Delayed Flights by Hour")
+```
+
+```{r}
+
+ggplot(total_sub, aes(x = wind_dir, y = delayed)) + geom_boxplot(aes(color = hour_class)) + labs(x = "Wind direction in degrees ", y = "Delayed flights" ,title = "Wind direction of Flights by Hour")
+```
+
+```{r}
+
+ggplot(total_sub, aes(x = precip, y = delayed)) + geom_boxplot(aes(color = hour_class)) + labs(x = "dewpoint", y = "Delayed flights" ,title = "Pressure of Delayed Flights by Hour")
+```
+
+```{r}
+
+ggplot(total_sub, aes(x = visib_class, y = delayed)) + geom_boxplot(aes(color = hour_class)) + labs(x = "dewpoint", y = "Delayed flights" ,title = "Pressure of Delayed Flights by Hour")
+```
+
+
+
