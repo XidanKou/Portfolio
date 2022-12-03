@@ -1,0 +1,62 @@
+---
+title: "Stat 3301: Homework 8"
+date: "Xidan Kou (kou.55)"
+author: "Due Thursday, October 29 by 11:59pm EDT"
+output: html_document
+---
+
+
+Setup:
+```{r message=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(alr4)
+library(tidyverse)
+```
+##### Solution to Question 1
+
+(a)
+
+```{r}
+data("UN11")
+boxplot(log(ppgdp) ~ group, ylab = "log(ppgdp)",xlab = "group",data = UN11)
+```
+
+(b) 
+```{r}
+UN11$Uoecd = as.numeric(UN11$group == "oecd")
+UN11$Uafica = as.numeric(UN11$group == "africa")
+```
+
+(c) 
+```{r}
+log_ppgdp_lm = summary(lm(log(ppgdp) ~ Uoecd + Uafica, data = UN11))
+log_ppgdp_lm$sigma^2
+log_ppgdp_lm$coefficients
+```
+
+Answer: $\hat{\beta}_0$ is 8.60,  $\hat{\beta}_1$ is 1.76, $\hat{\beta}_2$ is -1.54.
+ $\hat{\sigma}^2$ is 1.334.
+
+(d) 
+Answer: $\hat{\beta}_0$ means the mean log per person gdp for `other` countries.
+        $\hat{\beta}_1$ means the difference in average log per person gdp between          `oecd` countries and `other` countries.
+        $\hat{\beta}_2$ means the difference in average log per person gdp between          `africa` countries and `other` countries.
+
+(e)  
+$$\hat{E}(\mathtt{log(ppgdp)} \mid 
+\mathtt{group} = \mathtt{oecd}) = \hat{\beta}_0 + \hat{\beta}_1 = 8.60 + 1.76 = 10.36$$ 
+
+(f) 
+$\hat{E}(\mathtt{log(ppgdp)} \mid \mathtt{group} = \mathtt{oecd}) -\hat{E}(\mathtt{log(ppgdp)} \mid \mathtt{group} = \mathtt{africa}) = \hat{\beta}_0+\hat{\beta}_1 - (\hat{\beta}_0 + \hat{\beta}_2) = \hat{\beta}_1-\hat{\beta}_2 = 1.76+1.54 = 3.3$.
+
+
+(g) 
+```{r eval = FALSE}
+lm(log(ppgdp) ~ group, data = UN11)
+```
+
+$$
+  \log(\mathtt{ppgdp}_i) = \beta_0 + \beta_1 U_{other, i} + \beta_2 U_{africa, i} + e_i,
+$$
+where $e_i \stackrel{\mathrm{iid}}{\sim} \mbox{N}(0, \sigma^2)$ 
+
