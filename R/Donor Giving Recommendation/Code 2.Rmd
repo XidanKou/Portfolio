@@ -1,0 +1,265 @@
+---
+title: "project2"
+author: "Xidan Kou"
+date: "3/29/2022"
+output: html_document
+---
+
+6 datasets
+
+df2 = constituent
+df1 = Gift Category 
+df3 = External data
+DataConstituent = constituent_new
+designition info
+```{r}
+library(readr)
+library(readxl)
+
+
+DataConstituents <- read_csv("Library/CloudStorage/OneDrive-TheOhioStateUniversity/STAT4911/Project 2/Data/DataConstituents.csv")
+View(DataConstituents)
+
+Designation_Info <- read_excel("Library/CloudStorage/OneDrive-TheOhioStateUniversity/STAT4911/Project 2/Data/Designation Info.xlsx")
+
+DC_Giving_Summary <- read_csv("Library/CloudStorage/OneDrive-TheOhioStateUniversity/STAT4911/Project 2/Data/SP2022 Capstone - Project 2 - Data - Constituent Designation Giving Summary 2.csv")
+
+```
+
+
+```{r}
+Designation_Info_merge = Designation_Info[Designation_Info$IS_DESIGNATION_FOR_ANALYSIS == 1,]
+Designation_Info_merge = Designation_Info[,c(1,7:12)]
+Designation_Info_merge = Designation_Info[Designation_Info_merge$cdo == "ASC"|Designation_Info_merge$cdo == "FAES"|Designation_Info_merge$cdo == "OAA"|Designation_Info_merge$cdo == "ENGNR"|Designation_Info_merge$cdo == "MEDCT",]
+DataConstituents_merge = DataConstituents[,c(1,109:122,130:134,143,321:338)]
+DC_Giving_Summary_merge = DC_Giving_Summary[,c(1:2)]
+```
+
+
+```{r}
+library(dplyr)
+# merge1 = merge(Designation_Info,DC_Giving_Summary_merge,by.x = "DESIGNATIONLOOKUPID", by.y = "DESIGNATIONLOOKUPID",all.x = TRUE)
+
+ij = Designation_Info %>% inner_join(DC_Giving_Summary_merge, by = "DESIGNATIONLOOKUPID")
+
+ij_new = ij %>% distinct(CONSTITUENTLOOKUPID, .keep_all = TRUE)
+
+
+new_data_combined = merge(ij_new,DataConstituents_merge,by.x = "CONSTITUENTLOOKUPID", by.y = "ID_CONSTITUENTLOOKUPID",all.x = TRUE)
+new_data_combined = new_data_combined[new_data_combined$cdo == "ASC"|new_data_combined$cdo == "FAES"|new_data_combined$cdo == "OAA"|new_data_combined$cdo == "ENGNR"|new_data_combined$cdo == "MEDCT",]
+
+new_data_combined = new_data_combined %>% distinct(CONSTITUENTLOOKUPID, .keep_all = TRUE)
+new_data_combined = new_data_combined[,-c(3:7,14:16)]
+
+new_data_combined$ASC = ifelse(new_data_combined$cdo == "ASC", 1,0)
+new_data_combined$FAES = ifelse(new_data_combined$cdo == "FAES", 1,0)
+new_data_combined$OAA = ifelse(new_data_combined$cdo == "OAA", 1,0)
+new_data_combined$ENGNR = ifelse(new_data_combined$cdo == "ENGNR", 1,0)
+new_data_combined$MEDCT = ifelse(new_data_combined$cdo == "MEDCT", 1,0)
+
+
+# write_csv(new_data_combined, "~/Library/CloudStorage/OneDrive-TheOhioStateUniversity/STAT4911/Project 2/Data/new_data_combined2.csv")
+
+```
+
+```{r}
+# removing missing values
+new_data_combined2 =na.omit(new_data_combined2)
+sum(is.na(new_data_combined2))
+cols = c("N_OSUBOARD_EVER","IS_DEGREE_COLLEGECDO_ASC","IS_DEGREE_COLLEGECDO_COMED" , "IS_DEGREE_COLLEGECDO_DENT" , "IS_DEGREE_COLLEGECDO_EDHUM", "IS_DEGREE_COLLEGECDO_ENGNR"
+,"IS_DEGREE_COLLEGECDO_FAES" , "IS_DEGREE_COLLEGECDO_FCOB" , "IS_DEGREE_COLLEGECDO_JGSPA"
+,"IS_DEGREE_COLLEGECDO_LAW" ,  "IS_DEGREE_COLLEGECDO_NURSE" ,"IS_DEGREE_COLLEGECDO_OAA"  
+,"IS_DEGREE_COLLEGECDO_OPTOM", "IS_DEGREE_COLLEGECDO_PHARM" ,"IS_DEGREE_COLLEGECDO_PUBHL"
+,"IS_DEGREE_COLLEGECDO_SWK"  , "IS_DEGREE_COLLEGECDO_UNIV" , "IS_DEGREE_COLLEGECDO_VETMD"
+,"IS_OSUEDUINVL_ATHLETICS" ,"ASC" ,"FAES" ,"OAA" ,"ENGNR" ,"MEDCT")              
+
+new_data_combined2[cols] = lapply(new_data_combined2[cols],factor)
+new_data_combined2 = new_data_combined2[,-14]
+new_data_combined2 = new_data_combined2[,-c(10,14,15,19,20,23:25)]
+
+new_data_combined2$IS_OSUEMPLOYEE_EVER[new_data_combined2$IS_OSUEMPLOYEE_EVER == "TRUE"] <- 1
+new_data_combined2$IS_OSUEMPLOYEE_EVER[new_data_combined2$IS_OSUEMPLOYEE_EVER == "FALSE"] <- 0
+
+new_data_combined2$IS_OSUSTAFF_EVER[new_data_combined2$IS_OSUSTAFF_EVER == "TRUE"] <- 1
+new_data_combined2$IS_OSUSTAFF_EVER[new_data_combined2$IS_OSUSTAFF_EVER == "FALSE"] <- 0
+
+new_data_combined2$IS_OSUFACULTY_EVER[new_data_combined2$IS_OSUFACULTY_EVER == "TRUE"] <- 1
+new_data_combined2$IS_OSUFACULTY_EVER[new_data_combined2$IS_OSUFACULTY_EVER == "FALSE"] <- 0
+
+new_data_combined2$IS_ON_OSUBOARD_EVER[new_data_combined2$IS_ON_OSUBOARD_EVER == "TRUE"] <- 1
+new_data_combined2$IS_ON_OSUBOARD_EVER[new_data_combined2$IS_ON_OSUBOARD_EVER == "FALSE"] <- 0
+
+new_data_combined2$IS_OSUALUMSPOUSE[new_data_combined2$IS_OSUALUMSPOUSE == "TRUE"] <- 1
+new_data_combined2$IS_OSUALUMSPOUSE[new_data_combined2$IS_OSUALUMSPOUSE == "FALSE"] <- 0
+
+new_data_combined2$IS_REACHABLE[new_data_combined2$IS_REACHABLE == "TRUE"] <- 1
+new_data_combined2$IS_REACHABLE[new_data_combined2$IS_REACHABLE == "FALSE"] <- 0
+
+new_data_combined2$IS_BUCKEYEROOMMEMBER[new_data_combined2$IS_BUCKEYEROOMMEMBER == "TRUE"] <- 1
+new_data_combined2$IS_BUCKEYEROOMMEMBER[new_data_combined2$IS_BUCKEYEROOMMEMBER == "FALSE"] <- 0
+
+new_data_combined2$IS_OSUVOLUNTEER_EVER[new_data_combined2$IS_OSUVOLUNTEER_EVER == "TRUE"] <- 1
+new_data_combined2$IS_OSUVOLUNTEER_EVER[new_data_combined2$IS_OSUVOLUNTEER_EVER == "FALSE"] <- 0
+
+new_data_combined2$IS_OSUALUMNI[new_data_combined2$IS_OSUALUMNI == "TRUE"] <- 1
+new_data_combined2$IS_OSUALUMNI[new_data_combined2$IS_OSUALUMNI == "FALSE"] <- 0
+
+new_data_combined2$IS_OSUATTENDEE[new_data_combined2$IS_OSUATTENDEE == "TRUE"] <- 1
+new_data_combined2$IS_OSUATTENDEE[new_data_combined2$IS_OSUATTENDEE == "FALSE"] <- 0
+
+new_data_combined2$IS_OSUPARENT_EVER[new_data_combined2$IS_OSUPARENT_EVER == "TRUE"] <- 1
+new_data_combined2$IS_OSUPARENT_EVER[new_data_combined2$IS_OSUPARENT_EVER == "FALSE"] <- 0
+
+ASC = new_data_combined2[,-c(1:8,39:42)]
+FAES = new_data_combined2[,-c(1:8,38,40:42)]
+OAA = new_data_combined2[,-c(1:8,38,39,41:42)]
+ENGNR = new_data_combined2[,-c(1:8,38:40,42)]
+MEDCT = new_data_combined2[,-c(1:8,38:41)]
+
+```
+
+```{r}
+library(gbm)
+set.seed(1)
+boot.ASC = gbm(ASC == 1~., data = ASC, distribution = "bernoulli", n.trees = 50, interaction.depth = 3)
+summary(boot.ASC)
+
+boot.FAES = gbm(FAES == 1~., data = FAES, distribution = "bernoulli", n.trees = 50, interaction.depth = 3)
+summary(boot.FAES)
+
+boot.ENGNR = gbm(ENGNR == 1~., data = ENGNR, distribution = "bernoulli", n.trees = 50, interaction.depth = 3)
+summary(boot.ENGNR)
+
+boot.OAA = gbm(OAA == 1~., data = OAA, distribution = "bernoulli", n.trees = 50, interaction.depth = 3)
+summary(boot.OAA)
+
+boot.MEDCT = gbm(MEDCT == 1~., data = MEDCT, distribution = "bernoulli", n.trees = 50, interaction.depth = 3)
+summary(boot.MEDCT)
+```
+
+Randomly splitting data to train and test
+```{r}
+dt = sort(sample(nrow(ASC),nrow(ASC)*0.7))
+```
+
+
+
+```{r}
+# install.packages("InformationValue")
+library(glmnet)
+library(caret)
+library(InformationValue)
+
+set.seed(1)
+
+lasso.mod.cv.ASC= cv.glmnet(x = data.matrix(ASC[dt,-30]), y = factor(ASC$ASC),alpha=1, family = "binomial") 
+coef(lasso.mod.cv.ASC)
+
+lass.pred = predict(lasso.mod.cv.ASC, ASC[-dt,c(-30,-31,-32)])
+glm.ASC = glm(ASC ~ IS_DEGREE_COLLEGECDO_ASC + as.factor(IS_OSUATTENDEE) + as.factor(IS_OSUALUMSPOUSE) , family = "binomial", data = ASC[dt,])
+
+predict.ASC = predict(glm.ASC, ASC[-dt,c(6,12,7)], interval = "prediction",type = "response")
+summary(glm.ASC)
+log_odds = predict(glm.ASC, data.frame("IS_DEGREE_COLLEGECDO_ASC"= as.factor(as.character(0)), "IS_OSUATTENDEE"=as.factor(as.character(0)), "IS_OSUALUMSPOUSE"=as.factor(as.character(1))))
+exp(log_odds)/(1+exp(log_odds))
+
+# predict.ASC.lasso = predict(lasso.mod.cv.ASC, data.matrix(ASC[-dt,-30]), interval = "prediction",type = "response")
+
+log_odds_lasso = predict(lasso.mod.cv.ASC, data.frame("IS_DEGREE_COLLEGECDO_ASC"= as.factor(as.character(0)), "IS_OSUATTENDEE"=as.factor(as.character(0)), "IS_OSUALUMSPOUSE"=as.factor(as.character(1))))
+exp(log_odds)/(1+exp(log_odds))
+
+
+
+optimal = optimalCutoff(ASC[-dt,30], predict.ASC)
+predict.ASC = ifelse(predict.ASC > optimal,1,0)
+head(predict.ASC,10)
+confusionMatrix((ASC[-dt,30]) == 1, ((predict.ASC)) == 1)
+sensitivity(as.factor(ASC[-dt,30]), as.factor((predict.ASC)))
+misClassError(ASC[-dt,30],predict.ASC)
+glm.ASC$coefficients
+exp(glm.ASC$coefficients)/(1+exp(glm.ASC$coefficients))
+
+glm.ASC1 = glm(ASC ~ IS_DEGREE_COLLEGECDO_ASC + IS_OSUATTENDEE + IS_OSUALUMSPOUSE + IS_OSUEMPLOYEE_EVER + IS_OSUSTAFF_EVER , family = "binomial", data = ASC[dt,])
+
+exp(glm.ASC1$coefficients)/(1+exp(glm.ASC1$coefficients))
+exp(glm.ASC$coefficients)/(1+exp(glm.ASC$coefficients))
+
+ASC.pred[2]
+```
+
+```{r}
+#where you if the coeffienct is possitive then that variable indicates a higher probability of label 1 which each occurrence of that word.
+
+lasso.mod.FAES= cv.glmnet(x = data.matrix(FAES[,-30]), y = factor(FAES$FAES),alpha=1, family = "binomial")
+coef(lasso.mod.FAES)
+
+glm.FAES = glm(FAES ~ IS_DEGREE_COLLEGECDO_FAES + IS_DEGREE_COLLEGECDO_EDHUM + IS_OSUVOLUNTEER_EVER, family = "binomial", data = FAES)
+
+exp(glm.FAES$coefficients)
+```
+
+
+```{r}
+
+lasso.mod.ENGNR= cv.glmnet(x = data.matrix(ENGNR[,-30]), y = factor(ENGNR$ENGNR),alpha=1, family = "binomial")
+coef(lasso.mod.ENGNR)
+
+glm.ENGNR = glm(ENGNR ~ IS_OSUATTENDEE + IS_OSUALUMSPOUSE + IS_OSUPARENT_EVER + IS_DEGREE_COLLEGECDO_ENGNR, family = "binomial", data = ENGNR)
+exp(glm.ENGNR$coefficients)
+
+```
+
+```{r}
+lasso.mod.OAA= cv.glmnet(x = data.matrix(OAA[,-30]), y = factor(OAA$OAA),alpha=1, family = "binomial")
+coef(lasso.mod.OAA)
+
+glm.OAA = glm(OAA ~ as.factor(IS_OSUEMPLOYEE_EVER) + as.factor(IS_OSUALUMNI) +IS_DEGREE_COLLEGECDO_DENT + IS_DEGREE_COLLEGECDO_EDHUM + IS_DEGREE_COLLEGECDO_FCOB + IS_DEGREE_COLLEGECDO_LAW + IS_DEGREE_COLLEGECDO_OAA + IS_DEGREE_COLLEGECDO_PHARM + IS_DEGREE_COLLEGECDO_SWK+IS_DEGREE_COLLEGECDO_VETMD, family = "binomial", data = OAA)
+
+log_odds = predict(glm.OAA, data.frame("IS_OSUEMPLOYEE_EVER"= as.factor(as.character(0)), "IS_OSUALUMNI"=as.factor(as.character(1)), "IS_DEGREE_COLLEGECDO_DENT"=as.factor(as.character(0)),"IS_DEGREE_COLLEGECDO_EDHUM"= as.factor(as.character(0)), "IS_DEGREE_COLLEGECDO_FCOB"=as.factor(as.character(0)), "IS_DEGREE_COLLEGECDO_LAW"=as.factor(as.character(0)),"IS_DEGREE_COLLEGECDO_OAA"= as.factor(as.character(0)), "IS_DEGREE_COLLEGECDO_PHARM"=as.factor(as.character(0)), "IS_DEGREE_COLLEGECDO_SWK"=as.factor(as.character(0)),"IS_DEGREE_COLLEGECDO_VETMD"= as.factor(as.character(0))))
+                   
+exp(log_odds)/(1+exp(log_odds))
+```
+
+
+```{r}
+lasso.mod.MEDCT= cv.glmnet(x = data.matrix(MEDCT[,-30]), y = factor(MEDCT$MEDCT),alpha=1, family = "binomial")
+coef(lasso.mod.MEDCT)
+
+glm.MEDCT = glm(MEDCT ~ IS_OSUEMPLOYEE_EVER + IS_OSUALUMNI +IS_DEGREE_COLLEGECDO_DENT + IS_DEGREE_COLLEGECDO_EDHUM + IS_DEGREE_COLLEGECDO_FCOB + IS_DEGREE_COLLEGECDO_LAW + IS_DEGREE_COLLEGECDO_OAA + IS_DEGREE_COLLEGECDO_PHARM + IS_DEGREE_COLLEGECDO_SWK+IS_DEGREE_COLLEGECDO_VETMD, family = "binomial", data = MEDCT)
+exp(glm.OAA$coefficients)
+
+```
+
+```{r}
+# Clustering data
+cluster_data = new_data_combined2[,-c(1:8)]
+set.seed(1)
+km.out = kmeans(cluster_data, 3, nstart = 1)
+head(km.out$cluster,10)
+plot(cluster_data, col = (km.out$cluster+1))
+```
+
+```{r}
+
+glm.ASC1 = glm(ASC ~ IS_DEGREE_COLLEGECDO_ASC + IS_OSUATTENDEE + IS_OSUALUMSPOUSE + IS_OSUEMPLOYEE_EVER + IS_OSUSTAFF_EVER , family = "binomial", data = ASC[dt,])
+
+exp(glm.ASC1$coefficients)/(1+exp(glm.ASC1$coefficients))
+exp(glm.ASC$coefficients)/(1+exp(glm.ASC$coefficients))
+
+glm.FAES = glm(FAES ~ IS_DEGREE_COLLEGECDO_FAES + IS_DEGREE_COLLEGECDO_EDHUM + IS_OSUVOLUNTEER_EVER, family = "binomial", data = FAES)
+exp(glm.FAES$coefficients)
+
+glm.ENGNR = glm(ENGNR ~ IS_OSUATTENDEE + IS_OSUALUMSPOUSE + IS_OSUPARENT_EVER + IS_DEGREE_COLLEGECDO_ENGNR, family = "binomial", data = ENGNR)
+exp(glm.ENGNR$coefficients)
+
+glm.OAA = glm(OAA ~ as.factor(IS_OSUEMPLOYEE_EVER) + as.factor(IS_OSUALUMNI) +IS_DEGREE_COLLEGECDO_DENT + IS_DEGREE_COLLEGECDO_EDHUM + IS_DEGREE_COLLEGECDO_FCOB + IS_DEGREE_COLLEGECDO_LAW + IS_DEGREE_COLLEGECDO_OAA + IS_DEGREE_COLLEGECDO_PHARM + IS_DEGREE_COLLEGECDO_SWK+IS_DEGREE_COLLEGECDO_VETMD, family = "binomial", data = OAA)
+
+log_odds = predict(glm.OAA, data.frame("IS_OSUEMPLOYEE_EVER"= as.factor(as.character(0)), "IS_OSUALUMNI"=as.factor(as.character(1)), "IS_DEGREE_COLLEGECDO_DENT"=as.factor(as.character(0)),"IS_DEGREE_COLLEGECDO_EDHUM"= as.factor(as.character(0)), "IS_DEGREE_COLLEGECDO_FCOB"=as.factor(as.character(0)), "IS_DEGREE_COLLEGECDO_LAW"=as.factor(as.character(0)),"IS_DEGREE_COLLEGECDO_OAA"= as.factor(as.character(0)), "IS_DEGREE_COLLEGECDO_PHARM"=as.factor(as.character(0)), "IS_DEGREE_COLLEGECDO_SWK"=as.factor(as.character(0)),"IS_DEGREE_COLLEGECDO_VETMD"= as.factor(as.character(0))))
+                   
+exp(log_odds)/(1+exp(log_odds))
+
+glm.MEDCT = glm(MEDCT ~ IS_OSUEMPLOYEE_EVER + IS_OSUALUMNI +IS_DEGREE_COLLEGECDO_DENT + IS_DEGREE_COLLEGECDO_EDHUM + IS_DEGREE_COLLEGECDO_FCOB + IS_DEGREE_COLLEGECDO_LAW + IS_DEGREE_COLLEGECDO_OAA + IS_DEGREE_COLLEGECDO_PHARM + IS_DEGREE_COLLEGECDO_SWK+IS_DEGREE_COLLEGECDO_VETMD, family = "binomial", data = MEDCT)
+exp(glm.OAA$coefficients)
+```
+
+
