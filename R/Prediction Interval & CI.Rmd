@@ -1,0 +1,118 @@
+---
+title: "Stat 3301: Homework 4"
+date: "FirstName LastName (name.n)"
+author: "Due Thursday, September 24th by 11:59pm EDT"
+output: html_document
+---
+
+
+\
+
+
+Setup:
+```{r message=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(alr4)
+library(tidyverse)
+```
+
+\
+
+#### Instructions
+- Replace "FirstName LastName (name.n)" above with your information.
+- Provide your solutions below in the spaces marked "Solution:".
+- Include any R code that you use to answer the questions; if a numeric answer is required, show how you calculated it in R. I have set the global option `echo = TRUE` to make sure the R code is displayed.
+- Knit this document to HTML and upload both the HTML file and your completed Rmd file to Carmen
+- Make sure your solutions are clean and easy-to-read by
+    - formatting all plots to be appropriately sized, with appropriate axis labels.
+    - only including R code that is necessary to answer the questions below.
+    - only including R output that is necessary to answer the questions below (avoiding lengthy output).
+    - providing short written answers explaining your work, and writing in complete sentences.
+- Data files mentioned below are from the `alr4` package unless specified otherwise.
+
+\
+
+#### Concepts \& Application
+
+In this assignment, you will gain experience with the following methods of statistical inference:
+
+* confidence intervals for mean functions
+* hypothesis tests about mean functions
+* predictions and prediction intervals
+* confidence intervals for functions of parameters
+
+
+------
+
+
+#### Questions
+<!--
+Least squares fit, confidence interval for slope, confidence interval for mean,
+confidence bands, raw residuals, interpreting models (comparison)
+-->
+This is a continuation of the question on the last homework that relates to the **NBA player** 
+data we looked at in class (it is available on Carmen).  Here we will focus on players whose 
+position is **forward** (labeled `F` in the data set).
+
+Use the statistical model you fit on the last homework assignment to answer the following questions.
+
+1. Calculate and interpret a 95\% confidence interval for the average **weight** of forwards who 
+are 81.5\" tall.
+
+2. Remake the plot of weight versus height for forwards with the estimated regression line from the
+last homework assignment.  Add lines to the plot representing point-wise 90\% confidence intervals 
+for the mean function. Also provide a formula explaining how these intervals are computed.
+
+3. A reporter makes the claim that the average weight for NBA forwards who are 6' 7" tall
+is 210 pounds. Use an appropriate hypothesis test to assess whether the there is sufficient
+evidence to refute this claim.
+
+4. An NBA team hopes to add a new 6' 7" tall forward to their roster. Predict the weight
+(reporting both point and interval predictions) for the weight of this new player.
+
+5. In this part we are interested in the quantity $E( wt \mid ht = x+2) - E(wt \mid ht = x)$
+for some baseline height $x$.  We will think of this quantity as a parameter and will call the
+parameter $\delta$:
+\[
+  \delta \equiv E( wt \mid ht = x+2) - E(wt \mid ht = x).
+\]
+In words, this quantity is the difference in average weight for players that are two inches
+apart in height.
+
+     a. Show that, in terms of the model parameters, $\delta = 2\beta_1$.
+     b. Calculate an estimate $\widehat{\delta} = 2\widehat{\beta}_1$ of $\delta$ using the OLS estimate $\widehat{\beta}_1$.
+     c. Find a formula (not a numeric value) for the variance of the estimator:
+     $\mbox{Var}(\widehat{\delta} \mid X) = \mbox{Var}(2\widehat{\beta}_1 \mid X) = \ldots$
+     d. Find a formula (not a numeric value) for the standard error of the estimator, $se(\widehat{\delta} \mid X)$, by taking the square root of your answer from part (c) and substituting the estimate $\widehat{\sigma}$ for the unknown parameter $\sigma$.
+     e. Use the data to calculate the numeric value of $se(\widehat{\delta} \mid X)$.
+     f. Use all of the above information to calculate a 95\% confidence interval for $\delta$ and write a sentence interpreting this interval in terms of NBA forwards.
+     
+
+\
+
+##### Solutions
+
+**Part 1: **
+
+**Part 2: **
+
+**Part 3: **
+
+**Part 4: **
+
+**Part 5a: **
+
+**Part 5b: **
+
+**Part 5c: **
+
+**Part 5d: **
+
+**Part 5e: **
+
+**Part 5f: **
+
+
+------
+
+
