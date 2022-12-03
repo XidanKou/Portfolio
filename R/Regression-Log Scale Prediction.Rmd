@@ -1,0 +1,106 @@
+---
+title: "Stat 3301: Homework 5"
+date: "Xidan Kou(kou.55)"
+author: "Due Thursday, October 8 by 11:59pm EDT"
+output: html_document
+---
+Setup:
+```{r message=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(alr4)
+library(tidyverse)
+library(broom)
+```
+
+##### Solution to Question 1
+
+(a) For the linear regression model $Height_i = \beta_0 + \beta_1 \log Dbh_i + e_i$, report
+the numeric values of estimated parameters $\hat{\beta}_0$, $\hat{\beta}_1$ and $\hat{\sigma}^2$.
+
+```{r}
+dataf = ufcwc
+y = dataf$Height
+x = dataf$Dbh
+dataSumLogx = summary(lm(y~log(x),data = dataf))
+print(dataSumLogx$coefficients)
+print(dataSumLogx$sigma^2)
+```
+
+Answer: the numeric values of estimated parameters $\hat{\beta}_0$ is -463.31, $\hat{\beta}_1$ is 119.52 and $\hat{\sigma}^2$ is 1111.2.
+
+(b) Use the fitted model to compute "by hand" (i.e., don't use the `predict` function)  
+a 95\% confidence interval for average tree height for trees that have a diameter of 500 mm.
+```{r}
+dataSum = summary(lm(y~log(x),data = dataf))
+print(dataSum$coefficients)
+muhat = -463.3144 + 119.5192*log(500)
+n = length(dataf)
+sumstate = dataf%>%summarize(xbar=mean(log(Dbh)),SXX = sum((log(Dbh)-xbar)^2))%>%as.data.frame()
+seAtx = dataSum$sigma *sqrt((1/n)+((log(500) - sumstate$xbar)^2/sumstate$SXX))
+lwr = muhat - pt(0.975,n-2)*seAtx
+upr = muhat + pt(0.975,n-2)*seAtx
+print(lwr)
+print(upr)
+```
+
+Answer: We are 95% confidence that the average tree height for trees that have a diameter of 500 mm is between 267.43 decimeters and 291.5 decimeters.
+
+(c) Make a scatterplot with `log(Dbh)` on the x-axis and `Height` on the y-axis, and add
+the estimated linear regression line to the plot.
+```{r}
+dataf %>% ggplot(aes(x = log(Dbh), y = Height)) + geom_point() + 
+  geom_smooth(method = "lm", se = F) + theme_bw(10)
+```
+(d) Make a scatterplot with `Dbh` (on its original scale) on the x-axis and `Height` on 
+the y-axis. Use your fitted model from part (a) to add a line to the plot that represents the
+estimated average tree height as a function of tree diameter, $\hat{E}(\mathtt{Height} \mid 
+\mathtt{Dbh})$. Add dashed lines to the plot that represent point-wise, 95\% confidence
+intervals for the mean.
+
+```{r}
+ufcmod = lm(Height ~ log(Dbh), data = dataf)
+summary(ufcmod)
+dbh.grid = data.frame(Dbh=seq(from=min(dataf$Dbh), to=max(dataf$Dbh), length.out=100)) 
+ypred = predict(ufcmod, newdata=dbh.grid, interval="confidence")
+plot(dataf$Dbh, dataf$Height, pch=16, xlab="Estimated diameter of the tree(mm)", ylab="Height",
+     main="Estimated Mean Fuction with Confidence Interval") 
+lines(dbh.grid[,1], ypred[,1], col="blue", lwd=2)
+lines(dbh.grid[,1], ypred[,2], col="blue", lty=2); lines(dbh.grid[,1], ypred[,3], col="blue", lty=2)
+
+```
+
+(e) Using the estimated slope coefficient, $\hat{\beta}_1$, write a sentence that quantifies
+what our model says about how tree height depends on tree diameter (on its original scale).
+
+Answer:One decimeter increase in diameter of the tree in mm measured at 137 cm above the ground is associated with an estimated additional 0.32 decimeter in height of the tree. 
+
+##### Solution to Question 2
+
+(a) Make four plots: (i) `AdRevenue` vs. `Circulation`, (ii) `AdRevenue` vs. `log(Circulation)`, (iii) `log(AdRevenue)` vs. `Circulation`, (iv) `log(AdRevenue)` vs. `log(Circulation)`.
+Explain why transforming both `AdRevenue` and `Circulation` to log scale is useful for building
+a linear regression model that uses circulation to predict ad revenue.
+```{r}
+library(readr)
+Ad <- read_csv("~/Desktop/Stat 3301/AdRevenue.txt")
+plot(Ad$Circulation,Ad$AdRevenue,main = "AdRevenue vs Circulation")
+plot(log(Ad$Circulation),Ad$AdRevenue,main = "AdRevenue vs log(Circulation)")
+plot(Ad$Circulation,log(Ad$AdRevenue),main = "log(AdRevenue) vs Circulation")
+plot(log(Ad$Circulation),log(Ad$AdRevenue),main = "log(AdRevenue) vs log(Circulation)")
+
+```
+
+Answer: When plotting the the other three conditions((i),(ii),(iii)), the graph dose not show the linear relationship. All of the three graphs has curve trend and extreme values. While the graph transforming both `AdRevenue` and `Circulation`shows linear relationship.Thus transforming both `AdRevenue` and `Circulation` to log scale is useful for buildinga linear regression model that uses circulation to predict ad revenue.
+
+(b)
+Answer: No, because the values of variables are not range over more than one order of magnitude.
+
+(c) A company is interested in quantifying how increases in circulation are associated with changes
+in ad revenue. To do this, they fit a linear regression model with `log(Circulation)` as the
+predictor and `log(AdRevenue)` as the response. Use the estimated parameter $\widehat{\beta}_1$ 
+to provide, in plain English, a careful interpretation of how a change in the predictor 
+variable `Circulation` (on its original scale) is associated with a change in average ad 
+revenue (on its original scale).
+```{r}
+summary(lm(Ad$AdRevenue~Ad$Circulation, data = Ad))$coefficients
+```
+Answer: One additional million of magazine circulation is associated with an estimated additional 22.85 thousands of dollars in expected total ad revenue per page. 
