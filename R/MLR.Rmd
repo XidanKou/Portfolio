@@ -1,0 +1,99 @@
+---
+title: "Stat 3301: Homework 6"
+date: "Xidan Kou (kou.55)"
+author: "Due Thursday, October 15 by 11:59pm EDT"
+output: html_document
+---
+
+
+\
+
+
+Setup:
+```{r message=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(alr4)
+library(tidyverse)
+library(patchwork)
+library(broom)
+```
+##### Solution to Question 1
+(a) Make a scatterplot matrix for the variables `ht`, `age` and `wt`. Use the plots to describe the pairwise relationships between the variables.
+```{r}
+library(readr)
+nba <- read_csv("~/Desktop/Stat 3301/nbahtwt.csv")
+guards = subset(nba,pos=="G")
+pairs(~wt+ht+age,data = guards)
+```
+
+Answer: It seems weight and age does not have any obvious trend. Weight and height has positive linear relationship, which is as height increase, weight increase. 
+
+(b) Use `R` to fit a multiple linear regression model with mean function $E(\mathtt{wt} \mid
+\mathtt{ht}, \mathtt{age}) = \beta_0 + \beta_1 \mathtt{ht} + \beta_2 \mathtt{age}$ and
+variance function $\mbox{Var}(\mathtt{wt} \mid \mathtt{ht}, \mathtt{age}) = \sigma^2$.
+Use the `summary` function to display `R`'s standard summary of the fitted model.
+```{r}
+nba.lm = lm(wt ~ ht + age, data = guards)
+summary(nba.lm)$r.squared
+```
+
+Answer:
+R^2 = 0.39824.
+
+(c) Report the numeric values of the parameter estimates $\hat{\beta}_j$, $j = 0, 1, 2$, 
+and $\hat{\sigma}^2$.
+```{r}
+summary(nba.lm)$coefficients
+summary(nba.lm)$sigma^2
+```
+
+Answer:
+$\beta_0$ is -148.819, $\beta_1$ is 4.425 and $\beta_2$ is 0.415.
+$\hat{\sigma}^2$ = 142.971
+$E(\mathtt{ht}, \mathtt{age}) = -148.8194 + 4.425 \mathtt{ht} + 0.414 \mathtt{age}$
+
+(d) Report the numeric value of the degrees of freedom associated with the fitted model. Say what
+formula you use to calculate this value.
+
+Answer: df = n-p-1 = 202-3-1 = 198.
+
+(e) Use R to compute and display the 3x3 matrix $X^T X$, where *X* is the $202 \times 3$ matrix used to fit the regression model.
+```{r}
+Y = matrix(guards$wt,ncol = 1)
+X = cbind(rep(1,length(Y)),guards$ht,guards$age)
+tx_x = t(X)%*%X
+print(tx_x)
+```
+
+(f) Use R to compute and report the 3x3 matrix $(X^TX)^{-1}$.
+```{r}
+solve(tx_x)
+```
+
+(g) Nate Robinson should be the first case in the data set ($i = 1$). Compute and report 
+the leverage $h_{11}$ for Nate Robinson under this MLR model in two ways: (i) using the 
+`hatvalues` function and (ii) by computing the **H** matrix directly and reporting the 
+first diagonal element.
+```{r}
+head(hatvalues(nba.lm),11)
+H = X%*%solve(t(X)%*%X)%*%t(X)
+head(diag(H),11)
+```
+
+Answer: $h_{11}$ =0.0239.
+
+(h) Make three plots of the standardized residuals $r_i$: (i) $r_i$ versus the fitted values
+$\hat{y}_i$, (ii) $r_i$ versus `ht` and (iii) $r_i$ versus `age`. Do the plots suggest any
+problems with our assumptions about the mean and variance functions?
+
+```{r}
+rsd = rstandard(nba.lm)
+base = augment(nba.lm) %>% ggplot(aes(y = rsd)) + geom_point() + geom_hline(yintercept = 0) +
+  theme_bw(20) + ylim(-0.5, .5) + ylab("standard residuals")
+
+(base + aes(x = .fitted) + xlab("fitted values")) / ((base + aes(x = ht) + xlab("height")) +
+  (base + aes(x = age)))
+
+```
+
+Answer:It does suggest the variance function, and proved the constant variance assumption in this case, because there are no obvious trend of the three plots. 
