@@ -10,3 +10,7 @@ I graduated from The Ohio State University with a Data Analytics primary and Dat
 The Data Analytics program at OSU combines Computer Science, Statistics, and Mathematics courses, where I gained solid technical and analytical skills. Having a Master's degree in Applied Business Analytics adds more business aspects to my career. I would be an excellent fit for the Data Analyst position with both skills.
 
 Combined with Statistics, Machine Learning, Data Analytics knowledge, and the capability of using R, SQL, Python, Tableau, and Power BI, I am looking for a Data Analyst | Data Science Analytics | or a related full-time position by the summer of 2023. 
+
+## Contact me
+* Email: kouxidan@bu.edu
+* LinkedIn : https://www.linkedin.com/in/xidankou/
