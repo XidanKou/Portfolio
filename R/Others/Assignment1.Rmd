@@ -1,0 +1,228 @@
+---
+title: "Statistics 4620 Assignment1"
+author: "Xidan Kou"
+date: "9/8/2021"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+## Question 1
+
+a) better, flexible statistical learning method will fit better to large size n.
+b) worse, inflexible statistical learning would perform better on small sata size than flexible statistical learning. 
+c) better, for non-linear relationship, there will be more degrees of freedom, flexible statistical learning method is better when there are more degrees of freedom. 
+d) worse, with high variance term, the flexible model can follow errors closely.
+
+## Question 2
+
+a)
+```{r}
+library(readr)
+College <- read.csv("College.csv")
+```
+
+b)
+```{r}
+row_name = College[,1]
+College = College[,-1]
+```
+
+c)
+i
+```{r}
+summary(College)
+```
+
+ii
+```{r}
+College_sub = College[,2:11]
+pairs(College_sub)
+```
+
+iii
+```{r}
+College$Private = as.numeric(type.convert(College$Private))
+boxplot(College$Outstate~College$Private)
+```
+
+iv
+```{r}
+Elite=rep("No",nrow(College))
+Elite[College$Top10perc >50]="Yes"
+Elite=as.factor(Elite)
+College=data.frame(College ,Elite)
+
+summary(College)
+boxplot(College$Outstate ~College$Elite)
+```
+
+v)
+
+```{r}
+par(mfrow = c(2,2))
+hist(College$Outstate,breaks = 10, xlab = "Out-of-State tuition fee",main = "Outstate tuition with 10 bins")
+hist(College$Outstate,breaks = 20, xlab = "Out-of-State tuition fee",main = "Outstate tuition with 20 bins")
+hist(College$Outstate,breaks = 30, xlab = "Out-of-State tuition fee",main = "Outstate tuition with 30 bins")
+hist(College$Outstate,breaks = 40, xlab = "Out-of-State tuition fee",main = "Outstate tuition with 40 bins")
+
+# Histogram of number of students enrolled
+par(mfrow = c(2,2))
+hist(College$Enroll,breaks = 10, xlab = "number of students enrolled",main = "Students enrolled with 10 bins")
+hist(College$Enroll,breaks = 20, xlab = "number of students enrolled",main = "Students enrolled with 20 bins")
+hist(College$Enroll,breaks = 30, xlab = "number of students enrolled",main = "Students enrolled with 30 bins")
+hist(College$Enroll,breaks = 40, xlab = "number of students enrolled",main = "Students enrolled with 40 bins")
+
+# Histogram of Instructional Expenditure per student
+par(mfrow = c(2,2))
+hist(College$Expend,breaks = 10, xlab = "Instructional Expenditure per student",main = "Instructional Expenditure with 10 bins")
+hist(College$Expend,breaks = 20, xlab = "Instructional Expenditure per student",main = "Instructional Expenditure with 20 bins")
+hist(College$Expend,breaks = 30, xlab = "Instructional Expenditure per student",main = "Instructional Expenditure with 30 bins")
+hist(College$Expend,breaks = 40, xlab = "Instructional Expenditure per student",main = "Instructional Expenditure with 40 bins")
+
+# Histogram of Graduation rate
+par(mfrow = c(2,2))
+hist(College$Grad.Rate,breaks = 10, xlab = "Graduation rate",main = "Graduation rate with 10 bins")
+hist(College$Grad.Rate,breaks = 20, xlab = "Graduation rate",main = "Graduation rate with 20 bins")
+hist(College$Grad.Rate,breaks = 30, xlab = "Graduation rate",main = "Graduation rate with 30 bins")
+hist(College$Grad.Rate,breaks = 40, xlab = "Graduation rate",main = "Graduation rate with 40 bins")
+```
+
+vi
+```{r}
+plot(College$Personal,College$Enroll,type = "p")
+plot(College$Top10perc, College$Outstate)
+```
+
+Based on the pairs plot, there exists colinearity between variable Apps and Accept, Apps and enroll, Accept and Enroll, Accept and F.Undergrad, Enroll and F.Undergrad, Top10perc and Top25perc. The boxplot in part 'iv' suggests that the out-of-state tuition fee for private school is higher than public school. Also, as the above scatter plot, the more new students from top 10% of high school class, the higher the out-of-state fee is for that school.
+
+## Question 3
+
+```{r}
+library(readr)
+Auto=read.table("Auto.data",header=T,na.strings="?",stringsAsFactors = T)
+Auto=na.omit(Auto)
+```
+
+a)
+Quantitative: 
+mpg,cylinders , displacement, horsepower, weight, acceeration, year
+Qualitative: origin, name 
+
+b)
+
+```{r}
+Auto_sub = Auto[,-8:-9]
+sapply(Auto_sub,range)
+```
+
+c)
+
+```{r}
+sapply(Auto_sub,mean)
+sapply(Auto_sub,sd)
+```
+
+d)
+
+```{r}
+Auto_sub = Auto_sub[-10:-84,]
+sapply(Auto_sub,range)
+sapply(Auto_sub,mean)
+sapply(Auto_sub,sd)
+```
+
+e)
+
+```{r}
+Auto$cylinders = as.factor(Auto$cylinders)
+plot(Auto$cylinders , Auto$mpg, varwidth=T, xlab="cylinders",ylab =" MPG ")
+hist(Auto$mpg,col=2,breaks=15)
+pairs(Auto)
+pairs(~mpg + displacement + horsepower + weight +acceleration , Auto)
+
+boxplot(Auto$origin,Auto$mpg,xlab = "Origin of the car", ylab = "MPG of the car")
+plot(Auto$year,Auto$mpg, type = "p")
+```
+
+Based on the plots above, majority of the predictors are correlated with each other. The car with 4 cylinders tends to have the most mpg comparing with other number of cylinders. Also, the car with second origin tends have more MPG.
+
+f)
+By looking at the second "pairs" plots in e),"displacement", "horsepower" and  "weight" can be helpful for predicting "mpg". As displacement goes larger, mpg decreases. As horsepower and weight increases, mpg tends to increase as well. For predictor "acceleration", the plot shows that the points are relatively random scattered. So, "acceleration" probably not very helpful for explaining mpg.
+
+
+## Question 4
+
+In this problem:
+Qualitative variable:
+"Income","Limit" ,"Rating","Cards","Age" ,"Education","Balance" . 
+Quantitative variable:
+"Gender","Student","Married","Ethnicity"
+
+First, I looked through several summaries for the data:
+
+```{r}
+load("credit.Rdata")
+dim(newcredit)
+names(newcredit)
+newcredit_sub = newcredit[,-7:-10]
+sapply(newcredit_sub,range)
+sapply(newcredit_sub,mean)
+sapply(newcredit_sub,sd)
+```
+
+Plot data:
+```{r}
+pairs(newcredit_sub)
+plot(newcredit$Income,newcredit$Limit)
+```
+
+Based on the above "pairs" plot, there are variables highly correlated with each other.They are income and limit, limit and rating, limit and balance, rating and balance. For later model fit, I would delete several highly correlated variables.
+
+Plot data to linear regression model:
+```{r}
+newcredit$Gender = as.factor(newcredit$Gender)
+newcredit$Married = as.factor(newcredit$Married)
+newcredit$Ethnicity = as.factor(newcredit$Ethnicity)
+newcredit.lm.full = lm(Balance ~ ., data = newcredit)
+summary(newcredit.lm.full)
+```
+
+Based on the result above, we would like to delete several predictors in the model based on p-values.
+
+The new reduced model is shown below:
+
+```{r}
+newcredit.lm.reduced = lm(Balance ~ Income + Limit + Cards + Age + Student, data = newcredit)
+summary(newcredit.lm.reduced)
+```
+
+Comparing AIC for full and reduced model:
+
+```{r}
+AIC(newcredit.lm.reduced)
+AIC(newcredit.lm.full)
+```
+
+Since reduced model has lower AIC, we would prefer the reduced model in which the predictors include Income, Limit, Card number, Age and whether student or not.
+
+\begin{equation}
+Let X_1 = Income, X_2 = Limit, X_3 = Cards, X_4 = Age, Z_5 = Student.
+\end{equation}
+Where Z_5 is factor variable, others are continuous variable.
+\begin{equation}
+\hat{Y} = -701.1 -9.966 X_1 + 0.3264X_2 + 24.44X_3 - 1.036X_4 + 500Z_5 +  \hat{\epsilon}_i
+\end{equation}
+There are several variables highly correlated with each other.They are income and limit, limit and rating, limit and balance, rating and balance. Based on the coefficients from logistic model, fixing other variables, as income increase by 1 unit, the balance will decrease by approximately 10 units. Similar trend happened on the predictor "age", fixing other variables, as the age grows older by 1 year, the balance is likely to decrease by 1 unit. Also, as the number of cards increase by one, fixing other variables, the balance is likely to increase by 24 units.
+
+
+```{r}
+
+-0.05*log2(0.05) + -0.25*log2(0.25) + -0.35*log2(0.35)+ -0.35*log2(0.35)
+
+log2(4)
+
+
+```
+
+

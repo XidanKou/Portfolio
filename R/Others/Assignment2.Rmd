@@ -1,0 +1,216 @@
+---
+title: "Assignment2"
+author: "Xidan Kou"
+date: "9/24/2021"
+output: html_document
+---
+
+## Question 3
+# a)
+```{r}
+
+library("ISLR")
+names(Smarket)
+
+```
+
+
+```{r}
+
+library("ISLR")
+names(Weekly)
+dim(Weekly)
+summary(Weekly)
+pairs(Weekly)
+cor(Weekly[,-9])
+attach(Weekly)
+plot(Volume)
+```
+
+By plotting the data we see that Volume is increasing over time. In other words, the average number of shares traded weekly increased from 1990 to 2010.
+
+# b)
+```{r}
+glm.fits=glm(Direction ~ Lag1+Lag2+Lag3+Lag4+Lag5+Volume ,data=Weekly ,family=binomial)
+summary(glm.fits)
+coef(glm.fits)
+```
+
+Lag2 generates the smallest p-value(0.0296), which suggests that if market had a positive return on two weeks before, then it is likely the return will go up this week.
+
+# c)
+```{r}
+glm.probs=predict(glm.fits,type="response")
+glm.probs[1:10]
+contrasts (Direction)
+glm.pred=rep("Down",1089)
+glm.pred[glm.probs >.5]="Up"
+table(glm.pred,Direction)
+mean(glm.pred==Direction)
+```
+
+The diagonal elements of the confusion matrix indicate correct predictions, while the off-diagonals represent incorrect predictions. Our model correctly predicted that the market would go up on 557 days and that it would go down on 54 days, for a total of 557 + 54 = 611 correct predictions. According to the mean() function, logistic regression correctly predicted the movement of the market 56.1 % of the time.
+
+# d)
+```{r}
+train=(Year <=2008)
+Weekly.2009= Weekly[! train ,]
+dim(Weekly.2009)
+Direction.2009=Direction[!train]
+
+glm.fits=glm(Direction ~ Lag1+Lag2+Lag3+Lag4+Lag5+Volume , data=Weekly ,family=binomial,subset=train)
+glm.probs=predict(glm.fits, Weekly.2009,type="response")
+
+glm.pred=rep("Down",104)
+glm.pred[glm.probs >.5]="Up"
+table(glm.pred,Direction.2009)
+mean(glm.pred==Direction.2009)
+
+```
+
+The correct prediction rate is 46.15%.
+
+# e)
+```{r}
+library(MASS)
+lda.fit=lda(Direction ~ Lag1+Lag2,data= Weekly ,subset=train)
+lda.fit
+lda.pred=predict(lda.fit, Weekly.2009)
+names(lda.pred)
+lda.class=lda.pred$class
+table(lda.class ,Direction.2009)
+mean(lda.class==Direction.2009)
+
+```
+
+The correct prediction rate using LDA is 57.69%.
+
+# h)
+Based on the result from part d) and e) LDA results smaller error rate.Thus, LDA model is better.
+
+## Question 4
+# a)
+```{r}
+lm.fit = glm(Direction ~ Lag1 + Lag2, data = Weekly, family = binomial)
+coef(lm.fit)
+```
+
+# b)
+```{r}
+Weekly_subset = Weekly[-1,]
+lm.fit = glm(Direction ~ Lag1 + Lag2, data = Weekly_subset, family = binomial)
+coef(lm.fit)
+```
+
+# c)
+```{r}
+lm.probs=predict(lm.fit, Weekly[1,],type="response")
+if(lm.probs >.5)
+{
+  lm.pred = "Up"
+}else
+{
+  lm.pred = "Down"
+}
+lm.pred
+Weekly[1,9]
+```
+
+This observation was not correctly classified, because the predicted is Up, but the true value is Down.
+
+# d)
+```{r}
+n = nrow(Weekly) -1
+Direction.pred = rep(0,n)
+for (i in 1:n) {
+Weekly_subset = Weekly[-i,]
+lm.fit = glm(Direction ~ Lag1 + Lag2, data = Weekly_subset,family = binomial)
+
+lm.probs=predict(lm.fit, Weekly[i,],type="response")
+if(lm.probs >.5)
+{
+  lm.pred = "Up"
+}else
+{
+  lm.pred = "Down"
+}
+if(lm.pred != Weekly[i,9])
+{
+  Direction.pred[i] = 1
+}
+
+}
+```
+
+# e)
+```{r}
+error_rate = sum(Direction.pred)/n
+error_rate
+```
+
+The error rate for LOOCV estimate is 45.03%, which is slightly better than logistic estimate, and in between  logistic estimate and ALD estimate.
+
+# Question 5
+```{r}
+load("fun.Rdata")
+
+nc=10
+cuts=seq(0,1,length=nc)
+X=NULL
+for(i in 2:nc)
+{
+		X=cbind(X,as.numeric(x<cuts[i] & x>cuts[i-1]))
+}
+fit=lm(yobs~X-1)
+yhat=predict(fit)
+plot(x,yobs,type='l',ylim=c(-1.5,3),col="grey",lwd=2,xlab="x",ylab="y",main="Number of Components=9")
+points(x,yobs,pch=".")
+lines(x,yhat,lwd=2)
+```
+
+```{r}
+nc=15
+cuts=seq(0,1,length=nc)
+X=NULL
+for(i in 2:nc)
+{
+		X=cbind(X,as.numeric(x<cuts[i] & x>cuts[i-1]))
+}
+fit=lm(yobs~X-1)
+yhat=predict(fit)
+plot(x,yobs,type='l',ylim=c(-1.5,3),col="grey",lwd=2,xlab="x",ylab="y",main="Number of Components=9")
+points(x,yobs,pch=".")
+lines(x,yhat,lwd=2)
+
+```
+```{r}
+nc=20
+cuts=seq(0,1,length=nc)
+X=NULL
+for(i in 2:nc)
+{
+		X=cbind(X,as.numeric(x<cuts[i] & x>cuts[i-1]))
+}
+fit=lm(yobs~X-1)
+yhat=predict(fit)
+plot(x,yobs,type='l',ylim=c(-1.5,3),col="grey",lwd=2,xlab="x",ylab="y",main="Number of Components=9")
+points(x,yobs,pch=".")
+lines(x,yhat,lwd=2)
+
+```
+
+```{r}
+nc=25
+cuts=seq(0,1,length=nc)
+X=NULL
+for(i in 2:nc)
+{
+		X=cbind(X,as.numeric(x<cuts[i] & x>cuts[i-1]))
+}
+fit=lm(yobs~X-1)
+yhat=predict(fit)
+plot(x,yobs,type='l',ylim=c(-1.5,3),col="grey",lwd=2,xlab="x",ylab="y",main="Number of Components=9")
+points(x,yobs,pch=".")
+lines(x,yhat,lwd=2)
+
+```

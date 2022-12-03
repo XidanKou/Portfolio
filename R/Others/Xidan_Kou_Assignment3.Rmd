@@ -1,0 +1,312 @@
+---
+title: "Assignment3"
+author: "Xidan Kou"
+date: "10/20/2021"
+output: html_document
+---
+
+## Question 1 
+
+# a)
+iii: lasso is less flexible than least squares, but also less variance and more accuracy.
+# b)
+iii: RR is less flexible than least squares, but also less variance and more accuracy.
+# c)
+ii: non-linear method is more flexible than least squares, and more variance, but less bias.
+
+## Question 2 
+
+# a)
+```{r}
+set.seed(1)
+X = rnorm(100)
+error = rnorm(100)
+```
+
+# b)
+```{r}
+b0 = 10
+b1 = 2
+b2 = -0.5
+b3 = 3.2
+Y = b0 + b1*X + b2*X^2 + b3*X^3 + error
+```
+
+# c)
+```{r}
+library(leaps)
+data = data.frame(Y = Y,X = X)
+regfit.full = regsubsets(Y~ poly(X, 10), data, nvmax = 10)
+reg.summary = summary(regfit.full)
+reg.summary
+
+par(mfrow=c(3,3))
+plot(reg.summary$adjr2 ,xlab="Number of Variables ",ylab="adjusted r^2", type="l")
+temp = which.max(reg.summary$adjr2)
+points(temp,reg.summary$adjr2[temp], col="red",cex=2,pch=20)
+
+plot(reg.summary$cp, xlab = "Number of Variables", ylab = "Cp", type = "l")
+temp = which.min(reg.summary$cp)
+points(temp, reg.summary$cp[temp], col= "red", cex = 2, pch = 20)
+
+plot(reg.summary$bic, xlab = "Number of Variables", ylab = "BIC", type = "l")
+temp = which.min(reg.summary$bic)
+points(temp, reg.summary$bic[temp], col= "red", cex = 2, pch = 20)
+
+coef(regfit.full, 4)
+```
+
+According to the plots of {$C_p$}, BIC and {$R^2$}, I choose 4 variables to predict Y, those are {$X$},{$X^2$},{$X^3$},{$X^5$}. The coefficients are shown above.
+
+# d)
+```{r}
+regfit.fwd = regsubsets(Y~poly(X, degree = 10), data = data, nvmax = 10, method = "forward")
+fwd.summary = summary(regfit.fwd)
+fwd.summary
+
+par(mfrow=c(3,3))
+plot(fwd.summary$adjr2 ,main = "Forward Stepwise Selection",xlab="Number of Variables ",ylab="adjusted r^2", type="l")
+temp = which.max(fwd.summary$adjr2)
+points(temp,fwd.summary$adjr2[temp], col="red",cex=2,pch=20)
+
+plot(fwd.summary$cp, xlab = "Number of Variables", ylab = "Cp", type = "l")
+temp = which.min(fwd.summary$cp)
+points(temp, fwd.summary$cp[temp], col= "red", cex = 2, pch = 20)
+
+plot(fwd.summary$bic, xlab = "Number of Variables", ylab = "BIC", type = "l")
+temp = which.min(fwd.summary$bic)
+points(temp, fwd.summary$bic[temp], col= "red", cex = 2, pch = 20)
+
+coef(regfit.fwd, 4)
+
+regfit.bwd = regsubsets(Y~poly(X, degree = 10), data = data, nvmax = 10, method = "backward")
+bwd.summary = summary(regfit.bwd)
+bwd.summary
+
+par(mfrow=c(3,3))
+plot(bwd.summary$adjr2 ,main = "Backward Stepwise Selection", xlab="Number of Variables ",ylab="adjusted r^2", type="l")
+temp = which.max(bwd.summary$adjr2)
+points(temp,bwd.summary$adjr2[temp], col="red",cex=2,pch=20)
+
+plot(bwd.summary$cp, xlab = "Number of Variables", ylab = "Cp", type = "l")
+temp = which.min(bwd.summary$cp)
+points(temp, bwd.summary$cp[temp], col= "red", cex = 2, pch = 20)
+
+plot(bwd.summary$bic, xlab = "Number of Variables", ylab = "BIC", type = "l")
+temp = which.min(bwd.summary$bic)
+points(temp, bwd.summary$bic[temp], col= "red", cex = 2, pch = 20)
+
+coef(regfit.bwd, 4)
+```
+
+Results from forward and backward selection are quite similar with the best selection. They all comes out with the same number of variables to be selected for the model according to {$C_p$}, BIC and {$R^2$}. The four variables that are most useful are {$X$},{$X^2$},{$X^3$},{$X^5$}.
+
+#e)
+```{r}
+library("glmnet")
+set.seed(1)
+train=sample(c(TRUE,FALSE), nrow(data),rep=TRUE)
+test =(! train )
+
+matrix = model.matrix(Y~poly(X, degree = 10), data = data)
+cv.out = cv.glmnet(matrix[train,],Y[train],alpha = 1)
+plot(cv.out)
+bestlam = cv.out$lambda.min
+bestlam
+
+lasso.mod = glmnet(poly(X, degree = 10),Y,alpha = 1)
+lasso.coef = predict(lasso.mod, type = "coefficients", s = bestlam)
+lasso.coef
+```
+
+According to the Lasso model, we choose 8 variables for our model. Comparing to the previous subset selection methods, there are 4 more variables in the Lasso model. But the "extra" 4 more variables are the lowest 4 coefficients in the model, which means they might not explain Y very well.
+
+# f)
+```{r}
+# Best Subset Selection
+b7 = 5.6
+Y2 = b0 +b7*X^7 + error
+data2 = data.frame(Y = Y2,X = X)
+
+regfit.full = regsubsets(Y2~ poly(X, 10), data2, nvmax = 10)
+reg.summary = summary(regfit.full)
+reg.summary
+
+par(mfrow=c(3,3))
+plot(reg.summary$adjr2 ,xlab="Number of Variables ",ylab="adjusted r^2", type="l")
+temp = which.max(reg.summary$adjr2)
+points(temp,reg.summary$adjr2[temp], col="red",cex=2,pch=20)
+
+plot(reg.summary$cp, xlab = "Number of Variables", ylab = "Cp", type = "l")
+temp = which.min(reg.summary$cp)
+points(temp, reg.summary$cp[temp], col= "red", cex = 2, pch = 20)
+
+plot(reg.summary$bic, xlab = "Number of Variables", ylab = "BIC", type = "l")
+temp = which.min(reg.summary$bic)
+points(temp, reg.summary$bic[temp], col= "red", cex = 2, pch = 20)
+
+coef(regfit.full,7)
+
+# Lasso
+
+matrix = model.matrix(Y2~poly(X, degree = 10), data = data2)
+cv.out = cv.glmnet(matrix[train,],Y2[train],alpha = 1)
+plot(cv.out)
+bestlam = cv.out$lambda.min
+bestlam
+
+lasso.mod = glmnet(poly(X, degree = 10),Y2,alpha = 1)
+lasso.coef = predict(lasso.mod, type = "coefficients", s = bestlam)
+lasso.coef
+```
+
+Using {$X$} through {$X^{10}$} to predict {$Y = \beta_0 + \beta_7X^7 + \epsilon$} by subset selection turns out to have seven valuable predictors, which are {$X$}, {$X^2$} , ..., {$X^7$}. By Lasso, it turns out to have 5 variables, which are {$X$}, {$X^2$} , ..., {$X^5$}. Also, the coefficients of latter model are smaller than the former model. 
+
+## Question 3
+# a
+```{r}
+load("uni.Rdata")
+set.seed(1)
+train=sample(c(TRUE,FALSE), nrow(uni),rep=TRUE, prob = c(0.7,0.3))
+test =(! train )
+uni.train = uni[train,]
+uni.test = uni[test,]
+```
+
+# b
+```{r}
+uni.lm = lm(Apps~.,data = uni.train)
+lm.predict = predict(uni.lm, uni.test)
+mean((lm.predict - uni.test$Apps)^2)
+```
+
+# c
+```{r}
+x = model.matrix(Apps~., uni.train)[,-1]
+x.test = model.matrix(Apps~., uni.test)[,-1]
+ridge.mod = glmnet(x,uni.train[,2], alpha = 0)
+cv.out = cv.glmnet(x, uni.train[,2],alpha = 0)
+plot(cv.out)
+bestlam = cv.out$lambda.min
+bestlam
+ridge.pred = predict(ridge.mod, s= bestlam, newx = x.test)
+mean((ridge.pred-uni.test[,2])^2)
+``` 
+
+# d)
+```{r}
+cv.out = cv.glmnet(x,uni.train[,2],alpha = 1)
+plot(cv.out)
+bestlam = cv.out$lambda.min
+bestlam
+
+lasso.mod = glmnet(x,uni.train[,2],alpha = 1)
+lasso.pred = predict(lasso.mod, s = bestlam, newx = x.test)
+
+mean((lasso.pred-uni.test[,2])^2)
+```
+# e)
+```{r}
+# Using different split of data to repeat 
+set.seed(1)
+train=sample(c(TRUE,FALSE), nrow(uni),rep=TRUE, prob = c(0.9,0.1))
+test =(! train )
+uni.train = uni[train,]
+uni.test = uni[test,]
+# Least Squares
+uni.lm = lm(Apps~.,data = uni.train)
+lm.predict = predict(uni.lm, uni.test)
+mean((lm.predict - uni.test$Apps)^2)
+# Ridge Regression
+x = model.matrix(Apps~., uni.train)[,-1]
+x.test = model.matrix(Apps~., uni.test)[,-1]
+ridge.mod = glmnet(x,uni.train[,2], alpha = 0)
+cv.out = cv.glmnet(x, uni.train[,2],alpha = 0)
+
+bestlam = cv.out$lambda.min
+
+ridge.pred = predict(ridge.mod, s= bestlam, newx = x.test)
+mean((ridge.pred-uni.test[,2])^2)
+# Lasso Regression
+cv.out = cv.glmnet(x,uni.train[,2],alpha = 1)
+bestlam = cv.out$lambda.min
+lasso.mod = glmnet(x,uni.train[,2],alpha = 1)
+lasso.pred = predict(lasso.mod, s = bestlam, newx = x.test)
+
+mean((lasso.pred-uni.test[,2])^2)
+```
+
+Since the test errors are all very large, we might not predict our test data very well. For this specific case of random selection of train and test data, the least squares model had the lowest test error.
+Changing the train:test from 7:3 to 9:1(weight of data relative to whole datasets),for this specific case of random selection of train and test data, 9:1 (train:test), using more data to predict, performs smaller test error. Among three different models, the least squares model also had the lowest test error.
+
+## Question 4
+
+```{r}
+library("MASS")
+set.seed(1)
+train = sample(c(TRUE,FALSE), nrow(Boston),prob = c(0.7,0.3), replace = TRUE)
+test = !train
+x.train = model.matrix(crim~.,Boston[train,])[,-1]
+y.train = Boston[train,1]
+
+x.test = model.matrix(crim~.,Boston[test,])[,-1]
+y.test = Boston[test,1]
+
+# Using Lasso
+cv.out = cv.glmnet(x.train,y.train,alpha = 1)
+bestlam = cv.out$lambda.min
+lasso.mod = glmnet(x.train,y.train,alpha = 1)
+lasso.pred = predict(lasso.mod, s = bestlam, newx = x.test)
+mean((lasso.pred-y.test)^2)
+lasso.coef = predict(lasso.mod, type = "coefficients", s = bestlam)
+lasso.coef
+```
+
+```{r}
+# Least Squares
+boston.lm = lm(crim~.,data = Boston, subset = train)
+lm.predict = predict(boston.lm, Boston[test,])
+mean((lm.predict - y.test)^2)
+summary(boston.lm)
+```
+
+I tried two different methods, one is least square and the other one is lasso. I compared their test error to determine which model is better. It turns out that model using least squares had slightly lower error rate and less predictor, thus, model generated by least square considered as better model. 
+The least square model used four variables, and they were chose at {$p \leq 0.05 $} level.
+The final least square model is {$crim = 6.54 + 0.55rad -0.828dis -0.224mid + 1.525rm$}
+## P. 201 Question 9
+# e)
+```{r}
+median(Boston$medv)
+```
+
+The estimated median of median value of owner-occupied homes is $21,200.
+
+#f)
+```{r}
+library(boot)
+
+boot.median = function(data,index){
+  return(median(data[index, "medv"]))
+}
+
+boot(data = Boston, statistic = boot.median, R = 1000)
+```
+
+The estimated standard error of median value of owner-occupied homes is 0.38 using bootstrap.
+# g)
+```{r}
+quantile(Boston$medv, 0.1)
+```
+
+The estimated 10th percentile of median value of owner-occupied homes is $12,750.
+# h)
+```{r}
+
+boot.quantile = function(data,index){
+  return(quantile(data[index,"medv"],0.1))
+}
+
+boot(Boston, boot.quantile, R = 1000)
+```
+
+The estimated standard error of 10th percentile of median value of owner-occupied homes is 0.5087 using bootstrap.

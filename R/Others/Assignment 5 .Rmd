@@ -1,0 +1,108 @@
+---
+title: "Assignment 5"
+author: "Xidan Kou"
+date: "12/3/2021"
+output: html_document
+---
+## Question 7
+```{r}
+#install.packages("gbm")
+#install.packages("randomForest")
+library(randomForest)
+library(MASS)
+attach(Boston)
+set.seed(1)
+train = Boston[1:355,]
+test = Boston[356:506,]
+xtest = test[,-14]
+ytest = test[,14]
+p = 13
+p2 = 7
+p_squared = 4
+boston.p = randomForest(medv~.,data = train,xtest = xtest , ytest = ytest, mtry = p, importance = TRUE, ntree = 700)
+boston.p2 = randomForest(medv~.,data = train,xtest = xtest , ytest = ytest,mtry = p2, importance = TRUE, ntree = 700)
+boston.p_squared = randomForest(medv~.,data = train,xtest = xtest , ytest = ytest,mtry = p_squared, importance = TRUE, ntree = 700)
+
+plot(1:700, boston.p$test$mse, col= "purple", type = "l", xlab = "Number of Trees", ylab = "Test MSE", main = "Plot for different p value")
+lines(1:700, boston.p2$test$mse, col= "red", type = "l")
+lines(1:700, boston.p_squared$test$mse, col= "orange", type = "l")
+
+```
+
+The test error rate is the lowest when there are 7 predictors, which the model also achieved the lowest test MSE as the number of trees grows. 
+Model with 4 predictors performs better when the number of trees greater than 200. The model with full predictors performs worst when the number of trees greater than around 10. Random forests lead to the improvement over bagging, and is the best model among the three.
+
+## Question 8 
+# a)
+```{r}
+# install.packages("tree")
+library(tree)
+library(ISLR)
+attach(Carseats)
+summary(Carseats)
+# Split data to training data and testing data based on 7:3
+train = Carseats[1:280,]
+test = Carseats[281:400,]
+```
+
+# b)
+```{r}
+tree.carseats = tree(Sales ~ ., train)
+summary(tree.carseats)
+plot(tree.carseats )
+text(tree.carseats,pretty =0)
+set.seed(2)
+tree.predict = predict(tree.carseats,test)
+test.error = mean((test$Sales - tree.predict)^2)
+```
+
+The most important indicator of Sales appears to be shelving location, since the first branch differentiates Good locations from Bad and Medium locations.
+The test MSE is around 5.05.
+
+# c)
+```{r}
+set.seed(3)
+cv.carseats = cv.tree(tree.carseats, FUN = prune.tree)
+names(cv.carseats)
+cv.carseats
+par(mfrow=c(1,2))
+plot(cv.carseats$size ,cv.carseats$dev ,type="b", ylab = "CV error rate", xlab = "number of terminal nodes")
+plot(cv.carseats$k ,cv.carseats$dev ,type="b", ylab = "CV error rate", xlab = "alpha")
+# To avoid over fitting, I choose the best size as 11
+prune.carseats = prune.tree(tree.carseats,best = 11)
+plot(prune.carseats )
+text(prune.carseats,pretty=0)
+prune.predict = predict(prune.carseats,test)
+prune.error = mean((test$Sales -prune.predict)^2)
+```
+
+Pruning the tree does improve the test MSE a little bit, from 5.05 to 4.78.
+
+# d)
+```{r}
+
+bag.carseats = randomForest(Sales~., data = train,mtry = 10,importance = TRUE,ntree = 500)
+bag.predict = predict(bag.carseats,test)
+bag.test.error = mean((Carseats$Sales - bag.predict)^2)
+bag.test.error
+importance(bag.carseats)
+varImpPlot(bag.carseats)
+
+```
+
+The test MSE is 11.8.
+Based on the "importance" function, price, location and compPrice are top important variables.
+
+# e)
+```{r}
+rf.carseats = randomForest(Sales~.,data = train, mtry = 3,importance = TRUE,ntree = 500)
+# I choose 3 because p/3 is around 3 in this case  
+importance(rf.carseats)
+rf.predict = predict(rf.carseats,test)
+rf.error.rate = mean((Carseats$Sales - rf.predict)^2)
+rf.error.rate
+importance(rf.carseats)
+varImpPlot(rf.carseats)
+```
+The test MSE in this case is 10.36. Changing m from 10 to 3 changes the test MSE from 11.8 to 10.36.
+Price is the most importance variable.
