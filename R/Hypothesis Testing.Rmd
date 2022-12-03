@@ -1,0 +1,76 @@
+---
+title: "Stat 3301: Homework 7"
+date: "Xidan Kou (kou.55)"
+author: "Due Thursday, October 22 by 11:59pm EDT"
+output: html_document
+---
+
+Setup:
+```{r message=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(alr4)
+library(tidyverse)
+```
+
+##### Solution to Question 1
+
+```{r, echo = FALSE, message = FALSE}
+library(readr)
+nba <- read_csv("~/Desktop/Stat 3301/nbahtwt.csv")
+guards = nba %>% filter(pos == "G")
+guards.mod = lm(wt ~ ht + age, data = guards)
+summary(guards.mod)
+```
+
+
+(a) 
+```{r}
+X = model.matrix(guards.mod)
+(sig2hat = summary(guards.mod)$sigma^2)
+coeMatrix = sig2hat * solve(t(X)%*%X)
+print(coeMatrix)
+vcov(guards.mod)
+```
+
+
+(b) Use your result from part (a) to calculate the standard error for the estimated coefficient for the
+regressor `ht`. Verify your answer by comparing it with the summary of the fitted regression model 
+displayed above.
+```{r}
+sqrt(diag(coeMatrix))
+summary(guards.mod)$coefficients
+```
+
+(c) 
+Answer: For NBA guards in same age, one additional inch increase in height results expected weight increase of 4.4250 pounds. 
+
+(d) 
+Answer:
+$H_0$ :  $\beta_2 = 0$ 
+$H_1$ :  $\beta_2 \neq 0$
+```{r}
+p = 2*pt(-2.072,199)
+print(p)
+```
+We have p value = 0.039, which p value < 0.05. So, We reject the null hypothesis and conclude that adding `age` to the model that uses `height` to predict `weight` is useful.
+
+(e) 
+```{r}
+XtXinv = solve(t(X)%*%X)
+xstar = matrix(c(1, 78.5, 20),ncol = 1)
+sig = summary(guards.mod)$sigma
+tmp = sqrt(t(xstar)%*%XtXinv%*%xstar)
+setfit = sig*tmp
+print(setfit)
+predict(guards.mod, newdata = data.frame(ht = 78.5,  age = 20),interval = "confidence", se.fit = TRUE)
+
+```
+
+(f) 
+```{r}
+CI = (-148.8193632 +4.425*78.5 + 0.4145856*20)+ c(-1,1)*qt(0.95, df = 199)*c(setfit)
+print(CI)
+predict(guards.mod, newdata = data.frame(ht = 78.5,  age = 20),interval = "confidence", level = 0.9)
+
+```
+We are 90% confidence that the range of average weight for NBA guards who are 20-year-old and  78.5" tall is between 203.958 pounds and 209.7151 pounds. 
